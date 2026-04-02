@@ -1,0 +1,51 @@
+src/
+├── api/                # 🌐 [도메인 기준] 서버 통신 (백엔드와 대화하는 곳)
+│   ├── core/           # 통신 심장부 (apiClient.js, authApi.js, errorHandler.jsx, wrapper.js)
+│   ├── dev/            # 개발/테스트용 통신 (테스트용 찌르기 로직)
+│   ├── etc/            # 기타 도메인 (answerApi.js, boardApi.js, careerApi.js, todoApi.js)
+│   ├── graph/          # 지식맵 연동 (neo4jApi.js)
+│   ├── learning/       # 학습 도메인 (lectureApi.js, mathApi.js, questionApi.js, wordApi.js)
+│   ├── media/          # 미디어/AI (aiApi.js, generateApi.js, voiceApi.js)
+│   └── stats/          # 통계 전용 (statisticsApi.js)
+│
+├── components/         # 🧩 [Feature/UI 기준] 화면 조각들 (레고 블록)
+│   ├── admin/          # 관리자용 UI (AdminDashboard.jsx 등)
+│   ├── chat/           # 챗봇/음성 튜터 UI
+│   ├── common/         # 🌍 앱 전체 공통 UI (BasicMenu.jsx, Copyright.jsx, 공통 버튼, 모달 등)
+│   ├── dev/            # 개발/테스트용 UI (DevToolsWidget.jsx 등)
+│   ├── graph/          # 지식맵 UI (GraphCanvas.jsx 등)
+│   ├── learning/       # 학습용 UI (LectureList.jsx, StudyCard.jsx 등)
+│   ├── media/          # 영상/음성 UI (AutoVideoGenerator.jsx, VideoUpload.jsx 등)
+│   ├── member/         # 회원 관련 UI (로그인 폼 등)
+│   └── stat/           # 통계 차트 UI
+│
+├── config/             # ⚙️ 환경 및 라우팅 설정 (errorRouteConfig.jsx, menuConfig.js 등)
+│
+├── constants/          # 📝 상수 모음 (errorMessages.js 등)
+│
+├── hooks/              # 🪝 커스텀 훅 모음 (폴더 쪼개기 생략)
+│
+├── layouts/            # 🖼️ 화면 틀 (AuthLayout.jsx, BasicLayout.jsx 등) 👈 최상위 계층
+│
+├── pages/              # 📄 [도메인/라우터 연결 기준] 조립이 완료된 하나의 도화지(화면)
+│   ├── admin/          # 관리자 전용 화면
+│   ├── dev/            # 개발자 전용 화면 (ApiTestPage.jsx, SystemHealthPage.jsx 등)
+│   ├── error/          # 🚨 에러 전용 화면 (ErrorPage.jsx, NotFoundPage.jsx)
+│   ├── etc/            # 기타 화면 (PresentationPage.jsx 등)
+│   ├── graph/          # 지식맵 화면 (KnowledgeMapPage.jsx, SubjectMapPage.jsx)
+│   ├── learning/       # 학습 화면 (기존 qna, questions, study, words 통합)
+│   ├── media/          # 영상/음성 화면 (VideoSearchPage.jsx 등)
+│   ├── member/         # 회원 전용 화면
+│   ├── public/         # 로그인 불필요 (AboutPage.jsx, MainPage.jsx 등)
+│   └── stats/          # 통계 화면
+│
+├── router/             # 🛡️ [권한 기준] 길잡이 및 문지기 (접근 제어)
+│   ├── adminRouter.jsx # 관리자 필수 경로 모음 (AdminMiddleware로 감쌀 예정)
+│   ├── devRouter.jsx   # 개발자 전용 경로 모음
+│   ├── memberRouter.jsx# 로그인 필수 경로 모음 (ProtectedRoute로 감쌀 예정)
+│   ├── publicRouter.jsx# 누구나 접근 가능한 경로 모음
+│   └── root.jsx        # 🌟 전체 라우터를 하나로 조립하는 메인 파일
+│
+├── slices/             # 🍕 전역 상태 관리 모음 (폴더 쪼개기 생략)
+│
+└── utils/              # 🛠️ 공통 함수 모음 (폴더 쪼개기 생략)
