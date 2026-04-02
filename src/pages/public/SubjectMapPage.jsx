@@ -15,6 +15,24 @@ import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
 // ----------------------------------------------------------------------
 const SUBJECTS = [
   {
+    id: "기초수학",
+    label: "기초수학",
+    icon: "📐",
+    color: "from-pink-500 to-rose-500",
+    borderColor: "border-pink-500",
+    bgColor: "bg-pink-500",
+    themeColor: "#ec4899",
+  },
+  {
+    id: "심화수학",
+    label: "심화수학",
+    icon: "🧮",
+    color: "from-fuchsia-500 to-purple-500",
+    borderColor: "border-fuchsia-500",
+    bgColor: "bg-fuchsia-500",
+    themeColor: "#d946ef",
+  },
+  {
     id: "전기자기학",
     label: "전기자기학",
     icon: "⚡",
@@ -253,8 +271,9 @@ export default function SubjectMapPage() {
               onClick={() => setSelectedSubject(sub)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${
                 selectedSubject.id === sub.id
-                  ? `bg-slate-800 border-${sub.borderColor.split("-")[1]}-500 text-white shadow-[0_0_15px_${sub.themeColor}40]`
-                  : "bg-transparent border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                  ? `bg-slate-800 ${sub.borderColor} text-white shadow-[0_0_15px_${sub.themeColor}40]`
+                  : // 👆 객체에 있는 "border-pink-500" 등을 그대로 사용하도록 수정
+                    "bg-transparent border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
               }`}
             >
               <span>{sub.icon}</span>
