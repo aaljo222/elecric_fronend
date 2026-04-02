@@ -11,7 +11,7 @@ import useMove from "@/hooks/useMove";
 import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
 
 // ----------------------------------------------------------------------
-// 1. 과목 상수 데이터 (SUBJECTS)
+// 1. 과목 상수 데이터 (SUBJECTS) - 수학 과목 추가됨
 // ----------------------------------------------------------------------
 const SUBJECTS = [
   {
@@ -88,14 +88,29 @@ const SUBJECTS = [
   },
 ];
 
-// ✅ [추가됨] 노드 이름과 실제 강의 ID 매핑 객체
+// ----------------------------------------------------------------------
+// ✅ 1-2. 노드 이름과 실제 강의 ID 매핑 객체 (수학 개념 완벽 매핑)
+// ----------------------------------------------------------------------
 const NODE_TO_LECTURE_MAP = {
+  // 회로이론
   "옴의 법칙 (Ohm's Law)": "circuit_ohm_law_equivalent",
   "옴의 법칙": "circuit_ohm_law_equivalent",
   "병렬연결 (Parallel Connection)": "circuit_ohm_law_equivalent",
   "직렬 회로": "circuit_resistance",
   "Y-Δ 변환": "circuit_ydelta",
-  // 필요한 강의 매핑을 여기에 계속 추가하세요.
+
+  // 수학 (기초/심화)
+  "분수와 비례식": "math_fraction",
+  "지수법칙 기초": "math_exponent",
+  "로그의 이해": "math_logarithm",
+  인수분해: "math_factorization",
+  "함수의 이해": "math_function",
+  "호도법과 라디안": "math_radian",
+  "삼각함수 완벽 이해": "c3d27bab5e1cf6ae9f07f70ae08c1e26",
+  "허수와 복소수": "math_imaginary",
+  "기하와 벡터": "math_vector",
+  "행렬과 행렬식": "math_matrix",
+  "미분과 적분 기초": "math_calculus",
 };
 
 export default function SubjectMapPage() {
@@ -215,7 +230,7 @@ export default function SubjectMapPage() {
     setSelectedNode(detailedNode);
   };
 
-  // ✅ [추가됨] 강의 보기 버튼 클릭 핸들러
+  // 강의 보기 버튼 클릭 핸들러
   const handlePlayLecture = () => {
     if (!selectedNode || !selectedNode.name) return;
 
@@ -264,6 +279,7 @@ export default function SubjectMapPage() {
           </button>
         </div>
 
+        {/* ✅ [수정됨] Tailwind CSS 동적 클래스 파싱 오류 수정 부분 */}
         <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide border-t border-white/5 bg-slate-950/50">
           {SUBJECTS.map((sub) => (
             <button
@@ -272,8 +288,7 @@ export default function SubjectMapPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${
                 selectedSubject.id === sub.id
                   ? `bg-slate-800 ${sub.borderColor} text-white shadow-[0_0_15px_${sub.themeColor}40]`
-                  : // 👆 객체에 있는 "border-pink-500" 등을 그대로 사용하도록 수정
-                    "bg-transparent border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                  : "bg-transparent border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
               }`}
             >
               <span>{sub.icon}</span>
@@ -402,7 +417,6 @@ export default function SubjectMapPage() {
                 {/* 액션 버튼 */}
                 {selectedNode.group !== "Formula" && (
                   <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
-                    {/* ✅ [수정됨] alert 함수 대신 handlePlayLecture 실행 */}
                     <button
                       onClick={handlePlayLecture}
                       className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition shadow-lg shadow-blue-900/20"
