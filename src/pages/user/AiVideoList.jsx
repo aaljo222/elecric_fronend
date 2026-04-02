@@ -93,6 +93,7 @@ const HeroBanner = ({ currentCategoryData, total }) => (
 );
 
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
+  console.log("video:", video);
   let finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image";
