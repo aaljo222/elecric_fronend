@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
 import apiClient from "@/api/core/apiClient";
 import FullMapGraph from "@/components/graph/FullMapGraph";
+import { useEffect, useState } from "react";
 
 // 수식 렌더링 라이브러리
-import "katex/dist/katex.min.css";
 import { Latex } from "@/components/public/Latex";
+import "katex/dist/katex.min.css";
 
 // 아이콘 라이브러리
-import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
 import useMove from "@/hooks/useMove";
+import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
 
 // ----------------------------------------------------------------------
 // 1. 과목 상수 데이터 (SUBJECTS)
@@ -202,7 +202,7 @@ export default function SubjectMapPage() {
     if (!selectedNode || !selectedNode.name) return;
 
     const lectureId = NODE_TO_LECTURE_MAP[selectedNode.name];
-
+    console.log("lectureId", lectureId);
     if (lectureId) {
       move(`/user/videos/${lectureId}`);
     } else {
