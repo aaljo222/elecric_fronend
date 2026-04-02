@@ -1,12 +1,11 @@
-import React, { useState, useMemo } from "react";
-import { useSelector } from "react-redux";
-import { Play, ChevronLeft, ChevronRight, X, Lock } from "lucide-react"; // ListFilter 제거
 import useCustomMove from "@/hooks/useCustomMove";
+import { ChevronLeft, ChevronRight, Lock, Play, X } from "lucide-react"; // ListFilter 제거
+import { useMemo, useState } from "react";
 
 import {
-  mathLectures,
   circuitLectures,
   emLectures,
+  mathLectures,
   visionLectures,
 } from "@/constants/videoData";
 
@@ -264,9 +263,57 @@ export default function VideoListPage() {
   const [activeTab, setActiveTab] = useState("전체");
   const [selectedVideo, setSelectedVideo] = useState(null);
 
-  // ✅ 데이터 가공 및 필터링 (정렬 로직 제거)
+  // ✅ 1. 서버 데이터를 담을 상태와 로딩 상태 추가
+  const [videoList, setVideoList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ✅ 2. 백엔드 API 호출 및 더미 데이터 Fallback 로직
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        // 실제 운영 환경에서는 Axios 또는 설정된 API 주소를 사용하세요.
+        const response = await fetch("/api/video/list");
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // 서버에서 정상적으로 데이터를 가져왔으나 비어있지 않은 경우
+        if (data && data.length > 0) {
+          // 백엔드 응답(Neo4j 데이터)을 프론트엔드 카드 형식에 맞게 매핑
+          const mappedData = data.map((v, index) => ({
+            id: index, // 실제 DB의 고유 ID가 있다면 그걸 사용하세요
+            title: v.title || "제목 없음",
+            videoUrls: v.video_url ? [v.video_url] : [],
+            subject: "영상 강의",
+            description: v.message || "백엔드에서 불러온 영상입니다.",
+            createdAt: v.created_at || "2026-01-01",
+          }));
+          setVideoList(mappedData);
+        } else {
+          // 데이터가 빈 배열([])로 온 경우 에러를 던져 더미 데이터를 타게 함
+          throw new Error("백엔드에 영상 데이터가 없습니다.");
+        }
+      } catch (error) {
+        console.warn(
+          "⚠️ 데이터를 불러오지 못해 더미 데이터로 전환합니다:",
+          error.message,
+        );
+        // 통신 실패 또는 데이터가 없을 때 기존 상수로 정의된 더미 데이터 사용
+        setVideoList(ALL_LECTURES);
+      } finally {
+        setIsLoading(false); // 로딩 종료
+      }
+    };
+
+    fetchVideos();
+  }, []); // 컴포넌트 마운트 시 1회 실행
+
+  // ✅ 3. 기존 ALL_LECTURES 대신 동적인 videoList 상태를 바라보도록 수정
   const { activeVideos, lockedVideos } = useMemo(() => {
-    let result = ALL_LECTURES.map((v) => ({
+    let result = videoList.map((v) => ({
       ...v,
       category: getCategory(v),
       duration: v.duration || "10:00",
@@ -275,22 +322,20 @@ export default function VideoListPage() {
         !v.videoUrls || v.videoUrls.length === 0 || v.videoUrls[0] === "",
     }));
 
-    if (activeTab !== "전체")
+    if (activeTab !== "전체") {
       result = result.filter((video) => video.category === activeTab);
-
-    // 정렬 로직이 제거됨: 데이터 순서 그대로 유지
+    }
 
     return {
       activeVideos: result.filter((v) => !v.isLocked),
       lockedVideos: result.filter((v) => v.isLocked),
     };
-  }, [activeTab]);
+  }, [activeTab, videoList]); // videoList가 변경될 때마다 재계산
 
   const total = activeVideos.length;
   const totalPages = Math.ceil(total / size) || 1;
   const start = (page - 1) * size;
   const currentList = activeVideos.slice(start, start + size);
-
   const handleTabClick = (categoryId) => {
     setActiveTab(categoryId);
     moveToList({ page: 1, size });
