@@ -1,4 +1,3 @@
-import React from "react";
 import { BlockMath, InlineMath } from "react-katex";
 
 const ApiQuizCard = ({
@@ -31,7 +30,7 @@ const ApiQuizCard = ({
         <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <span className="material-symbols-outlined text-[#0047a5]">
             psychology
-          </span>{" "}
+          </span>
           심화 실전 퀴즈
         </h3>
         <button

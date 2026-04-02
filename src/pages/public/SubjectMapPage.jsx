@@ -111,6 +111,7 @@ const NODE_TO_LECTURE_MAP = {
   "기하와 벡터": "math_vector",
   "행렬과 행렬식": "math_matrix",
   "미분과 적분 기초": "math_calculus",
+  "삼각함수 2": "8fc05f0f6c31f19deeb976cb2b1562cf", // ✅ 이 줄을 추가해 주세요!
 };
 
 export default function SubjectMapPage() {
