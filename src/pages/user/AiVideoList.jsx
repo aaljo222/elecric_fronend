@@ -1,6 +1,6 @@
 import useCustomMove from "@/hooks/useCustomMove";
 import { ChevronLeft, ChevronRight, Lock, Play, X } from "lucide-react"; // ListFilter 제거
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   circuitLectures,
