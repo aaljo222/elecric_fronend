@@ -33,12 +33,14 @@ const ApiQuizCard = ({
           </span>
           심화 실전 퀴즈
         </h3>
+
+        {/* ✅ [수정됨] 눈에 확 띄도록 버튼 디자인 대폭 강화 */}
         <button
           onClick={onFetch}
-          className="text-sm font-bold text-[#0047a5] hover:underline flex items-center gap-1"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-[#0047a5] text-sm font-bold rounded-lg border border-blue-200 hover:bg-[#0047a5] hover:text-white transition-colors shadow-sm active:scale-95"
         >
-          <span className="material-symbols-outlined text-sm">refresh</span>{" "}
-          다른 문제
+          <span className="material-symbols-outlined text-[18px]">refresh</span>
+          새로운 문제
         </button>
       </div>
 
@@ -67,7 +69,8 @@ const ApiQuizCard = ({
           } else if (showSolution && idx === quizData.correct_index) {
             btnClass += "border-green-500 bg-green-50";
           } else {
-            btnClass += "border-gray-200 hover:border-blue-300";
+            btnClass +=
+              "border-gray-200 hover:border-blue-300 hover:bg-blue-50/30";
           }
 
           return (
