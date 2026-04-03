@@ -50,13 +50,21 @@ export default function SubjectMapPage() {
       try {
         const res = await apiClient.get("/api/graph/subjects");
         if (res.data && res.data.length > 0) {
-          // 💡 [핵심 추가] 이름(label)을 기준으로 중복된 과목 탭 제거
           const uniqueSubjects = Array.from(
             new Map(res.data.map((item) => [item.label, item])).values(),
           );
 
-          setSubjects(uniqueSubjects);
-          setSelectedSubject(uniqueSubjects[0]); // 중복 제거된 배열의 첫 번째 값 선택
+          // 💡 [추가] "전체과목" 탭을 맨 앞에 강제로 추가하면서 안전하게 color 값 부여!
+          const allSubjectTab = {
+            id: "전체과목",
+            label: "전체과목",
+            icon: "🌐",
+            color: "from-indigo-500 to-purple-500", // 그라데이션 컬러
+            themeColor: "#6366f1", // 로딩바 등을 위한 메인 컬러
+          };
+
+          setSubjects([allSubjectTab, ...uniqueSubjects]); // 전체과목을 맨 앞에 배치
+          setSelectedSubject(allSubjectTab); // 기본 선택을 전체과목으로!
         }
       } catch (err) {
         console.error("과목 목록 로드 실패:", err);
@@ -176,7 +184,7 @@ export default function SubjectMapPage() {
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <div
-              className={`p-2 rounded-lg bg-gradient-to-br ${selectedSubject.color || "from-pink-500 to-rose-500"} shadow-lg shadow-white/5`}
+              className={`p-2 rounded-lg bg-gradient-to-br ${selectedSubject.color || "#3b82f6" || "from-pink-500 to-rose-500"} shadow-lg shadow-white/5`}
             >
               <span className="text-xl">{selectedSubject.icon}</span>
             </div>
