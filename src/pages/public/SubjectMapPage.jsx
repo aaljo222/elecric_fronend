@@ -16,7 +16,7 @@ export default function SubjectMapPage() {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ nodes: 0, links: 0 });
   const [selectedNode, setSelectedNode] = useState(null);
-
+  const [focusNodes, setFocusNodes] = useState([]);
   // 1. 초기 과목 목록 로드 (404 방지를 위해 백엔드 API와 경로 일치 확인)
   useEffect(() => {
     const fetchSubjects = async () => {
