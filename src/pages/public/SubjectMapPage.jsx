@@ -88,36 +88,6 @@ const SUBJECTS = [
   },
 ];
 
-// ----------------------------------------------------------------------
-// ✅ 1-2. 노드 이름과 실제 강의 ID 매핑 객체 (수학 개념 완벽 매핑)
-// ----------------------------------------------------------------------
-const NODE_TO_LECTURE_MAP = {
-  // 회로이론
-  "옴의 법칙 (Ohm's Law)": "circuit_ohm_law_equivalent",
-  "옴의 법칙": "circuit_ohm_law_equivalent",
-  "병렬연결 (Parallel Connection)": "circuit_ohm_law_equivalent",
-  "직렬 회로": "circuit_resistance",
-  "Y-Δ 변환": "circuit_ydelta",
-
-  // 수학 (기초/심화)
-  "분수와 비례식": "math_fraction",
-  "지수법칙 기초": "math_exponent",
-  "로그의 이해": "math_logarithm",
-  인수분해: "math_factorization",
-  "함수의 이해": "math_function",
-  "호도법과 라디안": "math_radian",
-  // ✅ 새로 추가할 직선의 방정식 노드 매핑
-  "직선의 방정식": "62069c25429c16e898888d5611eb67b4",
-  "두 직선의 교점": "62069c25429c16e898888d5611eb67b4",
-  연립방정식: "62069c25429c16e898888d5611eb67b4",
-  "삼각함수 완벽 이해": "c3d27bab5e1cf6ae9f07f70ae08c1e26",
-  "허수와 복소수": "math_imaginary",
-  "기하와 벡터": "math_vector",
-  "행렬과 행렬식": "math_matrix",
-  "미분과 적분 기초": "math_calculus",
-  "삼각함수 2": "8fc05f0f6c31f19deeb976cb2b1562cf", // ✅ 이 줄을 추가해 주세요!
-};
-
 export default function SubjectMapPage() {
   const move = useMove("/user/videos");
 
@@ -191,13 +161,13 @@ export default function SubjectMapPage() {
     return processed;
   };
 
-  // 노드 클릭 핸들러
   const handleNodeClick = (node) => {
     if (!node) {
       setSelectedNode(null);
       return;
     }
 
+    // 💡 핵심: DB에서 넘어온 노드 데이터 전체를 상태에 저장
     const detailedNode = { ...node };
 
     if (node.group === "Concept") {
@@ -235,18 +205,18 @@ export default function SubjectMapPage() {
     setSelectedNode(detailedNode);
   };
 
-  // 강의 보기 버튼 클릭 핸들러
   const handlePlayLecture = () => {
-    if (!selectedNode || !selectedNode.name) return;
+    if (!selectedNode) return;
 
-    const lectureId = NODE_TO_LECTURE_MAP[selectedNode.name];
-    console.log("lectureId", lectureId);
+    // 💡 DB 노드에 'lecture_id' 또는 'video_id' 속성이 저장되어 있다고 가정합니다.
+    // 만약 속성명이 다르다면 DB에서 내려주는 필드명으로 맞춰주세요.
+    const lectureId = selectedNode.lecture_id || selectedNode.id;
+
     if (lectureId) {
+      console.log(`Moving to lecture: ${lectureId}`);
       move(`/user/videos/${lectureId}`);
     } else {
-      alert(
-        `[${selectedNode.name}] 개념에 연결된 강의 영상이 아직 준비되지 않았습니다.`,
-      );
+      alert(`[${selectedNode.name}] 개념에 연결된 강의 정보가 DB에 없습니다.`);
     }
   };
 
