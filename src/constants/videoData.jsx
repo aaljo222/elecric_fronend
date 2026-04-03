@@ -5,6 +5,7 @@ import {
   generateFactorizationQuiz,
   generateFractionQuiz,
   generateLogarithmQuiz,
+  generatePerfectSquareQuiz, // 💡 1. 방금 만든 함수 import 추가
 } from "@/utils/quizUtils";
 
 // 1. 기초수학 데이터
@@ -142,6 +143,22 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/8fc05f0f6c31f19deeb976cb2b1562cf/watch",
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/8fc05f0f6c31f19deeb976cb2b1562cf/manifest/video.m3u8",
     ],
+  },
+  // 💡 2. 완전제곱식 강의 데이터 추가
+  {
+    id: "e935dc2d2e592a79688c5f40da5fbe23", // 요청하신 영상 해시 ID
+    subject: "기초수학 (중학)",
+    title: "완전제곱식의 이해",
+    duration: "-",
+    description:
+      "다항식의 제곱 형태로 인수분해되는 완전제곱식의 조건과 원리를 학습하고 실전에 적용합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/watch",
+    ],
+    generator: generatePerfectSquareQuiz, // 💡 방금 만든 문제 생성기 연결!
   },
   {
     id: "math_polynomial",

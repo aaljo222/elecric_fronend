@@ -183,7 +183,47 @@ export const generateCompositeFunctionQuiz = () => {
   };
 };
 
-// src/utils/quizUtils.js 맨 아래에 추가
+// 💡 [추가] 완전제곱식 인수분해 문제 생성기
+export const generatePerfectSquareQuiz = () => {
+  // a는 1~9 사이의 무작위 정수
+  const a = Math.floor(Math.random() * 9) + 1;
+  // 부호는 50% 확률로 플러스 또는 마이너스
+  const isPositive = Math.random() > 0.5;
+
+  const middleTerm = 2 * a;
+  const lastTerm = a * a;
+
+  const signStr = isPositive ? "+" : "-";
+  const middleStr = isPositive ? `+ ${middleTerm}x` : `- ${middleTerm}x`;
+
+  // 문제: x^2 ± 2ax + a^2
+  const problem = `다음 이차식을 완전제곱식으로 인수분해 하시오. \\\\[10pt] x^2 ${middleStr} + ${lastTerm}`;
+
+  // 정답: (x ± a)^2
+  const answer = `(x ${signStr} ${a})^2`;
+
+  // 풀이 과정 (Steps)
+  const steps = [
+    {
+      text: "완전제곱식의 기본 형태를 떠올립니다.",
+      math: "(x \\pm A)^2 = x^2 \\pm 2Ax + A^2",
+    },
+    {
+      text: `주어진 식에서 x의 계수가 ${isPositive ? "" : "-"}${middleTerm}이므로, 2A = ${middleTerm}에서 A = ${a} 임을 알 수 있습니다.`,
+      math: "",
+    },
+    {
+      text: `상수항을 확인해보면 A^2 = ${a}^2 = ${lastTerm} 으로 일치하므로, 이 식은 완전제곱식입니다.`,
+      math: "",
+    },
+    {
+      text: "따라서 인수분해 결과는 다음과 같습니다.",
+      math: answer,
+    },
+  ];
+
+  return { problem, answer, steps };
+};
 
 // [6강용] 오옴의 법칙과 병렬 합성저항 퀴즈
 export const generateOhmQuiz = () => {
