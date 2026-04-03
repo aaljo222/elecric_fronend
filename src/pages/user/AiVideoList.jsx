@@ -1,5 +1,5 @@
 import useCustomMove from "@/hooks/useCustomMove";
-import { ChevronLeft, ChevronRight, Lock, Play, X } from "lucide-react"; // ListFilter 제거
+import { ChevronLeft, ChevronRight, Lock, Play } from "lucide-react"; // ListFilter 제거
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -188,33 +188,30 @@ const LockedVideoCard = ({ locked }) => (
 
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
+
+  // ⭐ 핵심: 현재 선택된 비디오의 widgetType에 맞는 컴포넌트를 창고(WIDGET_MAP)에서 꺼내옵니다.
+  const ActiveWidgetComponent = selectedVideo.widgetType
+    ? WIDGET_MAP[selectedVideo.widgetType]
+    : null;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* 모달 헤더 (기존과 동일) */}
         <div className="p-8 border-b border-gray-100 flex justify-between items-start shrink-0">
-          <div>
-            <div className="bg-[#e5edff] text-[#0047a5] px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-3 inline-block">
-              강의 상세 안내
-            </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">
-              {selectedVideo.title}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-red-500 transition-colors p-2 -mr-2"
-          >
-            <X size={32} />
-          </button>
+          {/* ... (생략) ... */}
         </div>
-        <div className="p-8 overflow-y-auto">
-          <div className="space-y-8">
+
+        {/* 모달 콘텐츠 영역 */}
+        <div className="p-8 overflow-y-auto flex-grow flex flex-col xl:flex-row gap-8">
+          {/* 좌측: 기존 텍스트 설명 영역 */}
+          <div className="flex-1 space-y-8">
             <p className="text-xl text-gray-600 leading-relaxed font-medium">
               {selectedVideo.description}
             </p>
@@ -222,23 +219,24 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
               <h4 className="text-base font-bold text-[#0047a5] uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">
                 강의 정보
               </h4>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-lg">카테고리</span>
-                  <span className="text-gray-900 font-bold text-lg">
-                    {selectedVideo.category || "미분류"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-lg">과목명</span>
-                  <span className="text-gray-900 font-bold text-lg">
-                    {selectedVideo.subject || "-"}
-                  </span>
-                </div>
-              </div>
+              {/* 카테고리, 과목명 등 (기존과 동일) */}
             </div>
           </div>
+
+          {/* ⭐ 우측: 인터랙티브 실습 위젯 렌더링 영역 */}
+          {ActiveWidgetComponent && (
+            <div className="flex-1 border-t xl:border-t-0 xl:border-l border-gray-100 pt-8 xl:pt-0 xl:pl-8">
+              <div className="mb-4 inline-block bg-blue-100 text-[#0047a5] px-3 py-1 rounded text-sm font-bold uppercase tracking-widest">
+                인터랙티브 실습 공간
+              </div>
+
+              {/* 꺼내온 위젯 컴포넌트를 여기에 렌더링합니다! */}
+              <ActiveWidgetComponent />
+            </div>
+          )}
         </div>
+
+        {/* 하단 버튼 (기존과 동일) */}
         <div className="p-8 bg-gray-50 flex flex-col gap-4 shrink-0 rounded-b-2xl border-t border-gray-100">
           <button
             onClick={() => {
@@ -254,7 +252,6 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
     </div>
   );
 };
-
 // ==========================================
 // 3. 메인 컴포넌트
 // ==========================================

@@ -195,7 +195,7 @@ export default function SubjectMapPage() {
       </div>
     );
   }
-  // 👆👆👆 [여기까지] 👆👆👆
+
   // --- 6. JSX (디자인 원본 유지) ---
   return (
     <div className="flex flex-col h-screen bg-[#020617] overflow-hidden relative font-sans text-slate-200">
