@@ -191,7 +191,7 @@ export default function SubjectMapPage() {
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <div
-              className={`p-2 rounded-lg bg-gradient-to-br ${selectedSubject.color || "#3b82f6" || "from-pink-500 to-rose-500"} shadow-lg shadow-white/5`}
+              className={`p-2 rounded-lg bg-gradient-to-br ${(selectedSubject && selectedSubject.color) || "#3b82f6" || "from-pink-500 to-rose-500"} shadow-lg shadow-white/5`}
             >
               <span className="text-xl">{selectedSubject?.icon || "🌐"}</span>
             </div>
