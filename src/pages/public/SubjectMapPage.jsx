@@ -3,7 +3,7 @@ import FullMapGraph from "@/components/graph/FullMapGraph";
 import { Latex } from "@/components/public/Latex";
 import useMove from "@/hooks/useMove";
 import "katex/dist/katex.min.css";
-import { BookOpen, Calculator, PenTool, Play, X } from "lucide-center";
+import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function SubjectMapPage() {
