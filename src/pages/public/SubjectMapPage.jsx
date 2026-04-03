@@ -1,30 +1,59 @@
 import apiClient from "@/api/core/apiClient";
 import FullMapGraph from "@/components/graph/FullMapGraph";
+import { useCallback, useEffect, useState } from "react";
+
+// 수식 렌더링 라이브러리
 import { Latex } from "@/components/public/Latex";
-import useMove from "@/hooks/useMove";
 import "katex/dist/katex.min.css";
+
+// 아이콘 라이브러리
+import useMove from "@/hooks/useMove";
 import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export default function SubjectMapPage() {
   const move = useMove("/user/videos");
 
-  // --- 상태 관리 ---
-  const [subjects, setSubjects] = useState([]); // 💡 DB에서 가져온 과목 목록 저장
+  // --- 1. 상태 관리 ---
+  const [subjects, setSubjects] = useState([]); // DB에서 가져온 과목 목록
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ nodes: 0, links: 0 });
   const [selectedNode, setSelectedNode] = useState(null);
-  const [focusNodes, setFocusNodes] = useState([]);
-  // 1. 초기 과목 목록 로드 (404 방지를 위해 백엔드 API와 경로 일치 확인)
+  const [focusNodes, setFocusNodes] = useState([]); // 음성/검색 줌인용 상태
+
+  // --- 2. 유틸리티 함수 ---
+  const cleanLatexTitle = (text) => {
+    if (!text) return "";
+    let processed = text.replaceAll("$", "");
+    const keywords = [
+      "sigma",
+      "pi",
+      "mu",
+      "epsilon",
+      "nabla",
+      "int",
+      "frac",
+      "sqrt",
+      "cdot",
+    ];
+    keywords.forEach((key) => {
+      const regex = new RegExp(`(?<!\\\\)\\b${key}\\b`, "g");
+      processed = processed.replace(regex, `\\${key}`);
+    });
+    return processed;
+  };
+
+  // --- 3. 데이터 로딩 (API 호출) ---
+
+  // A. 초기 과목 목록 로드
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
         const res = await apiClient.get("/api/graph/subjects");
         if (res.data && res.data.length > 0) {
           setSubjects(res.data);
-          setSelectedSubject(res.data[0]); // 첫 번째 과목을 기본 선택
+          setSelectedSubject(res.data[0]); // 첫 번째 과목 기본 선택
         }
       } catch (err) {
         console.error("과목 목록 로드 실패:", err);
@@ -33,12 +62,15 @@ export default function SubjectMapPage() {
     fetchSubjects();
   }, []);
 
-  // 2. 선택된 과목 변경 시 그래프 로드
+  // B. 선택된 과목 변경 시 그래프 로드
   useEffect(() => {
     if (!selectedSubject?.id) return;
 
     const fetchGraph = async () => {
       setLoading(true);
+      setGraphData({ nodes: [], links: [] });
+      setSelectedNode(null);
+
       try {
         const res = await apiClient.get(
           `/api/graph/full-map/${encodeURIComponent(selectedSubject.id)}?include_formulas=true`,
@@ -49,7 +81,7 @@ export default function SubjectMapPage() {
           links: res.data.links?.length || 0,
         });
       } catch (err) {
-        console.error("그래프 로드 실패:", err);
+        console.error("그래프 데이터 로드 실패:", err);
       } finally {
         setLoading(false);
       }
@@ -57,18 +89,82 @@ export default function SubjectMapPage() {
     fetchGraph();
   }, [selectedSubject]);
 
-  // ✅ 데이터 가드: subjects가 로딩되지 않았을 때의 크래시 방지
-  if (!selectedSubject || subjects.length === 0) {
+  // --- 4. 이벤트 핸들러 ---
+
+  // 노드 클릭 시 상세 정보 처리
+  const handleNodeClick = useCallback(
+    (node) => {
+      if (!node) {
+        setSelectedNode(null);
+        return;
+      }
+
+      const detailedNode = { ...node };
+
+      // Concept 노드인 경우 연결된 Formula들을 찾아서 함께 보여줌
+      if (node.group === "Concept") {
+        const connectedFormulas = graphData.links
+          .filter((link) => {
+            const sId =
+              typeof link.source === "object" ? link.source.id : link.source;
+            const tId =
+              typeof link.target === "object" ? link.target.id : link.target;
+            return sId === node.id || tId === node.id;
+          })
+          .map((link) => {
+            const sId =
+              typeof link.source === "object" ? link.source.id : link.source;
+            const tId =
+              typeof link.target === "object" ? link.target.id : link.target;
+            const targetId = sId === node.id ? tId : sId;
+            return graphData.nodes.find((n) => n.id === targetId);
+          })
+          .filter((n) => n && n.group === "Formula");
+
+        detailedNode.connectedFormulas = connectedFormulas;
+      }
+      // Formula 노드인 경우 자기 자신을 상세 수식으로 설정
+      else if (node.group === "Formula") {
+        detailedNode.name = "수식 상세";
+        detailedNode.connectedFormulas = [
+          {
+            id: node.id,
+            latex: node.latex,
+            name: node.name,
+            description: node.description,
+          },
+        ];
+      }
+
+      setSelectedNode(detailedNode);
+    },
+    [graphData],
+  );
+
+  // '강의 보기' 버튼 클릭 시 페이지 이동
+  const handlePlayLecture = () => {
+    if (!selectedNode) return;
+
+    // DB의 lecture_id를 우선 사용, 없으면 노드 id 사용
+    const lectureId = selectedNode.lecture_id || selectedNode.id;
+
+    if (lectureId) {
+      move(`/user/videos/${lectureId}`);
+    } else {
+      alert(`[${selectedNode.name}] 개념에 연결된 강의 영상이 없습니다.`);
+    }
+  };
+
+  // --- 5. 가드 렌더링 ---
+  if (!selectedSubject) {
     return (
       <div className="h-screen bg-[#020617] flex items-center justify-center text-white">
-        과목 데이터를 불러오는 중...
+        데이터를 불러오는 중...
       </div>
     );
   }
 
-  // ----------------------------------------------------------------------
-  // 4. 렌더링 (JSX)
-  // ----------------------------------------------------------------------
+  // --- 6. JSX 렌더링 ---
   return (
     <div className="flex flex-col h-screen bg-[#020617] overflow-hidden relative font-sans text-slate-200">
       {/* ================= Header ================= */}
@@ -76,9 +172,9 @@ export default function SubjectMapPage() {
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <div
-              className={`p-2 rounded-lg bg-gradient-to-br ${selectedSubject.color} shadow-lg shadow-white/5`}
+              className={`p-2 rounded-lg bg-gradient-to-br ${selectedSubject.color || "from-blue-500 to-indigo-500"} shadow-lg shadow-white/5`}
             >
-              <span className="text-xl">🗺️</span>
+              <span className="text-xl">{selectedSubject.icon || "🗺️"}</span>
             </div>
             <div>
               <h1 className="text-lg font-bold text-white tracking-tight">
@@ -91,7 +187,6 @@ export default function SubjectMapPage() {
               </p>
             </div>
           </div>
-
           <button
             onClick={() => move("/user")}
             className="text-sm text-slate-400 hover:text-white px-3 py-1 rounded-full border border-slate-700 hover:bg-slate-800 transition"
@@ -100,7 +195,7 @@ export default function SubjectMapPage() {
           </button>
         </div>
 
-        {/* ✅ [수정됨] Tailwind CSS 동적 클래스 파싱 오류 수정 부분 */}
+        {/* 과목 선택 탭 (DB 연동) */}
         <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide border-t border-white/5 bg-slate-950/50">
           {subjects.map((sub) => (
             <button
@@ -108,7 +203,7 @@ export default function SubjectMapPage() {
               onClick={() => setSelectedSubject(sub)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${
                 selectedSubject.id === sub.id
-                  ? `bg-slate-800 ${sub.borderColor} text-white shadow-[0_0_15px_${sub.themeColor}40]`
+                  ? `bg-slate-800 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]`
                   : "bg-transparent border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5"
               }`}
             >
@@ -125,11 +220,8 @@ export default function SubjectMapPage() {
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-4">
               <div
-                className={`animate-spin w-12 h-12 border-4 rounded-full border-t-transparent`}
-                style={{
-                  borderColor: selectedSubject.themeColor,
-                  borderTopColor: "transparent",
-                }}
+                className="animate-spin w-12 h-12 border-4 rounded-full border-t-transparent"
+                style={{ borderColor: selectedSubject.themeColor || "#3b82f6" }}
               ></div>
               <span className="text-slate-300 font-medium animate-pulse">
                 지식 그래프 생성 중...
@@ -149,26 +241,11 @@ export default function SubjectMapPage() {
         {selectedNode && (
           <div className="absolute top-36 right-4 w-[90%] md:w-96 z-40 animate-in slide-in-from-right duration-300">
             <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-200px)]">
-              {/* 패널 헤더 */}
               <div
-                className={`px-5 py-4 border-b border-white/10 flex justify-between items-start bg-gradient-to-r ${
-                  selectedNode.group === "Formula"
-                    ? "from-red-900/20 to-rose-900/20"
-                    : selectedNode.group === "Topic"
-                      ? "from-green-900/20 to-emerald-900/20"
-                      : "from-slate-800 to-slate-900"
-                }`}
+                className={`px-5 py-4 border-b border-white/10 flex justify-between items-start bg-slate-800`}
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2 rounded-lg ${
-                      selectedNode.group === "Formula"
-                        ? "bg-red-500/20 text-red-400"
-                        : selectedNode.group === "Topic"
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-blue-500/20 text-blue-400"
-                    }`}
-                  >
+                  <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400">
                     {selectedNode.group === "Formula" ? (
                       <Calculator size={18} />
                     ) : (
@@ -196,9 +273,7 @@ export default function SubjectMapPage() {
                 </button>
               </div>
 
-              {/* 패널 본문 */}
               <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-                {/* 1. 설명/정의 */}
                 <div className="text-slate-300 text-sm leading-7">
                   {!selectedNode.description && !selectedNode.definition ? (
                     <div className="text-center py-8 text-slate-500 italic">
@@ -211,31 +286,27 @@ export default function SubjectMapPage() {
                   )}
                 </div>
 
-                {/* 연결된 하위 수식(Formula) 리스트 렌더링 */}
-                {selectedNode.connectedFormulas &&
-                  selectedNode.connectedFormulas.length > 0 && (
-                    <div className="pt-4 border-t border-white/10">
-                      <h4 className="text-sm font-bold text-red-400 mb-3 flex items-center gap-2">
-                        <Calculator size={14} />
-                        관련 공식{" "}
-                        <span className="text-xs bg-red-500/10 px-2 py-0.5 rounded-full">
-                          {selectedNode.connectedFormulas.length}
-                        </span>
-                      </h4>
-                      <div className="space-y-3">
-                        {selectedNode.connectedFormulas.map((formula, idx) => (
-                          <div
-                            key={formula.id || idx}
-                            className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 overflow-x-auto flex justify-center hover:bg-slate-800 transition-colors"
-                          >
-                            <Latex>{`$$ ${cleanLatexTitle(formula.latex || formula.name)} $$`}</Latex>
-                          </div>
-                        ))}
-                      </div>
+                {selectedNode.connectedFormulas?.length > 0 && (
+                  <div className="pt-4 border-t border-white/10">
+                    <h4 className="text-sm font-bold text-red-400 mb-3 flex items-center gap-2">
+                      <Calculator size={14} /> 관련 공식{" "}
+                      <span className="text-xs bg-red-500/10 px-2 py-0.5 rounded-full">
+                        {selectedNode.connectedFormulas.length}
+                      </span>
+                    </h4>
+                    <div className="space-y-3">
+                      {selectedNode.connectedFormulas.map((formula, idx) => (
+                        <div
+                          key={formula.id || idx}
+                          className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 overflow-x-auto flex justify-center hover:bg-slate-800 transition-colors"
+                        >
+                          <Latex>{`$$ ${cleanLatexTitle(formula.latex || formula.name)} $$`}</Latex>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                {/* 액션 버튼 */}
                 {selectedNode.group !== "Formula" && (
                   <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
                     <button
@@ -245,25 +316,12 @@ export default function SubjectMapPage() {
                       <Play size={16} fill="currentColor" /> 강의 보기
                     </button>
                     <button
-                      onClick={() => alert("문제 풀이 기능 준비 중")}
+                      onClick={() => alert("준비 중입니다.")}
                       className="flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm transition"
                     >
                       <PenTool size={16} /> 문제 풀기
                     </button>
                   </div>
-                )}
-
-                {selectedNode.group === "Chapter" && (
-                  <button
-                    onClick={() =>
-                      move(
-                        `/study/chapter/${selectedNode.id.replace("C:", "")}`,
-                      )
-                    }
-                    className="w-full py-3 mt-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-500 hover:to-teal-500 transition shadow-lg"
-                  >
-                    📚 이 단원 집중 학습하기
-                  </button>
                 )}
               </div>
             </div>
