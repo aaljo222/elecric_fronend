@@ -34,7 +34,6 @@ const ApiQuizCard = ({
           심화 실전 퀴즈
         </h3>
 
-        {/* ✅ [수정됨] 눈에 확 띄도록 버튼 디자인 대폭 강화 */}
         <button
           onClick={onFetch}
           className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-[#0047a5] text-sm font-bold rounded-lg border border-blue-200 hover:bg-[#0047a5] hover:text-white transition-colors shadow-sm active:scale-95"
@@ -44,11 +43,12 @@ const ApiQuizCard = ({
         </button>
       </div>
 
+      {/* 💡 [문제용 이미지]: 삼각함수, 회로도 등 문제를 풀기 위해 꼭 봐야 하는 이미지 */}
       {quizData.circuit_image && (
         <div className="flex justify-center mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-inner">
           <img
             src={`data:image/svg+xml;base64,${quizData.circuit_image.replace(/\n/g, "")}`}
-            alt="회로도"
+            alt="문제 참고용 그림"
             className="max-w-full h-auto"
           />
         </div>
@@ -100,6 +100,18 @@ const ApiQuizCard = ({
           </p>
           <div className="p-6 bg-[#f7fafe] rounded-xl border border-[#d7e2ff]">
             <h4 className="font-bold text-[#0047a5] mb-4">💡 단계별 해설</h4>
+
+            {/* ✅ [해설용 이미지]: 두 직선의 교점 등 정답 스포일러가 포함된 그래프 */}
+            {quizData.graph_image && (
+              <div className="flex justify-center mb-6">
+                <img
+                  src={`data:image/svg+xml;base64,${quizData.graph_image.replace(/\n/g, "")}`}
+                  alt="해설 그래프"
+                  className="max-w-full h-auto border rounded bg-white shadow-sm"
+                />
+              </div>
+            )}
+
             <div className="space-y-4">
               {quizData.steps.map((step) => (
                 <div
