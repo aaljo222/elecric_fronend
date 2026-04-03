@@ -147,25 +147,35 @@ export default function AiVideoWatch() {
             </div>
 
             {activeTab === "quiz" ? (
-              // 💡 이제 퀴즈 탭이 열리자마자 백엔드에서 생성된 문제가 화면에 뜹니다!
-              <ApiQuizCard
-                quizData={quizData}
-                selectedIndex={selectedIndex}
-                isCorrect={isCorrect}
-                showSolution={showSolution}
-                onSelect={handleQuizSelect}
-                onFetch={fetchRandomProblem}
-              />
+              // 💡 [방어 코드] quizData 객체 안에 problem_latex가 확실히 있을 때만 ApiQuizCard를 렌더링합니다!
+              quizData && quizData.problem_latex ? (
+                <ApiQuizCard
+                  quizData={quizData}
+                  selectedIndex={selectedIndex}
+                  isCorrect={isCorrect}
+                  showSolution={showSolution}
+                  onSelect={handleQuizSelect}
+                  onFetch={fetchRandomProblem}
+                />
+              ) : (
+                <div className="text-center text-slate-400 py-20 bg-slate-900 rounded-xl border border-slate-800">
+                  <span className="material-symbols-outlined text-4xl mb-3 block text-slate-600">
+                    quiz
+                  </span>
+                  이 강의에 등록된 실전 퀴즈가 없거나 데이터를 불러올 수
+                  없습니다.
+                </div>
+              )
             ) : (
               <QnaCard />
             )}
           </section>
         </div>
 
-        {/* <aside className="lg:col-span-4 space-y-8">
+        <aside className="lg:col-span-4 space-y-8">
           <VideoPlayerList />
           <RecommendedVideo count={4} />
-        </aside> */}
+        </aside>
       </div>
     </main>
   );
