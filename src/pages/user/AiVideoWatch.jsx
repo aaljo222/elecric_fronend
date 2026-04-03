@@ -45,6 +45,8 @@ export default function AiVideoWatch() {
       setQuizData(res.data);
     } catch (e) {
       console.error("문제 로딩 실패:", e);
+      // 💡 [추가] 퀴즈 로딩에 실패하더라도 화면이 멈추지 않도록 null 처리
+      setQuizData(null);
     }
   };
 
