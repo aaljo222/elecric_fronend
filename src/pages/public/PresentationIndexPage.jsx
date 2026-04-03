@@ -1,7 +1,7 @@
+import apiClient from "@/api/core/apiClient"; // 실제 프로젝트 경로에 맞게 수정해주세요.
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "@/api/core/apiClient"; // 실제 프로젝트 경로에 맞게 수정해주세요.
 
 const PresentationIndexPage = () => {
   const navigate = useNavigate();
@@ -30,11 +30,9 @@ const PresentationIndexPage = () => {
   const fetchChapterList = async () => {
     setLoading(true);
     try {
-      // fetch 대신 apiClient 사용
       const response = await apiClient.get(
-        `/api/presentation/chapters/list?subject=KOR`,
+        `/api/presentation/chapters/list?subject=${selectedSubject}`, // 💡 KOR 대신 ${selectedSubject}로 변경!
       );
-      // Axios는 응답 데이터를 .data에 담아 반환합니다.
       setChapterList(response.data);
       console.log(response.data);
     } catch (e) {
