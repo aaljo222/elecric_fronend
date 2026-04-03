@@ -367,8 +367,27 @@ export default function VideoListPage() {
         ))}
       </div>
 
-      <div className="mb-6 text-gray-500 font-medium">
-        총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
+      {/* 안내 텍스트 & Manim 애니메이션 컨테이너 (이 부분이 수정되었습니다) */}
+      <div className="mb-6 flex justify-between items-end">
+        {/* 좌측: 기존 텍스트 */}
+        <div className="text-gray-500 font-medium">
+          총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
+        </div>
+
+        {/* 우측: Manim 영상 영역 */}
+        <div className="w-40 md:w-56 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto object-cover"
+          >
+            {/* Manim 렌더링 결과물 경로 지정 */}
+            <source src="/videos/manim/list_intro.webm" type="video/webm" />
+            <source src="/videos/manim/list_intro.mp4" type="video/mp4" />
+          </video>
+        </div>
       </div>
 
       {/* 비디오 리스트 */}
