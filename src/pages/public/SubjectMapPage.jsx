@@ -139,34 +139,35 @@ export default function SubjectMapPage() {
   const handlePlayLecture = () => {
     if (!selectedNode) return;
 
-    // 1. 'K:1234' 형태에서 '1234'만 추출
+    // 1. DB에서 명시적으로 연결해 둔 lecture_id를 가장 먼저, 그리고 최우선으로 찾습니다.
+    // (아까 Cypher 쿼리로 Concept 노드에 넣어준 그 값입니다)
+    const lectureId = selectedNode.lecture_id;
+
+    if (lectureId) {
+      // 2. lecture_id가 존재한다면 묻지도 따지지도 않고 바로 해당 영상 페이지로 이동!
+      console.log("🚀 영상으로 이동합니다 ID:", lectureId);
+      move(`/user/videos/${lectureId}`);
+      return;
+    }
+
+    // 3. 만약 lecture_id가 없다면, 그제야 기존의 복잡한 로직이나 경고창을 띄웁니다.
     const rawId = selectedNode.id.includes(":")
       ? selectedNode.id.split(":")[1]
       : selectedNode.id;
 
-    // 2. DB에 수동으로 저장한 'lecture_id'를 최우선으로 사용합니다.
-    const finalId = selectedNode.lecture_id || rawId;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(rawId);
 
-    // 3. 만약 finalId가 여전히 랜덤 UUID 형태(예: b5796...)라면 경고창을 띄우고 막습니다.
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(finalId);
-
-    if (isUuid && !selectedNode.lecture_id) {
+    if (isUuid) {
       alert(
-        `[${selectedNode.name}] 개념에 연결된 정확한 강의 코드가 DB에 없습니다. lecture_id를 확인해주세요.`,
+        `[${selectedNode.name}] 개념에 연결된 정확한 강의 코드가 DB에 없습니다. (lecture_id 누락)`,
       );
       return;
     }
 
-    move(`/user/videos/${finalId}`);
+    // UUID가 아닌 일반 텍스트 형태의 ID라면 그걸 들고 이동해 봅니다.
+    console.log("🚀 기본 ID로 이동합니다:", rawId);
+    move(`/user/videos/${rawId}`);
   };
-  // --- 5. 가드 렌더링 (에러 방지) ---
-  if (!selectedSubject) {
-    return (
-      <div className="h-screen bg-[#020617] flex items-center justify-center text-white">
-        데이터 로딩 중...
-      </div>
-    );
-  }
 
   // --- 6. JSX (디자인 원본 유지) ---
   return (
