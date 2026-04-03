@@ -49,26 +49,29 @@ export default function AiVideoWatch() {
   };
 
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchVideo = async () => {
       try {
         setLoading(true);
-        // 1. 영상 주소 불러오기
         const res = await apiClient.get(`/api/video/url/${id}`);
-        setVideoInfo({ video_url: res.data.video_url, title: res.data.title });
-
-        // 2. 퀴즈 데이터 하나 바로 불러오기 (이게 없어서 퀴즈가 안 떴습니다!)
-        await fetchRandomProblem();
-      } catch (error) {
-        console.error("데이터 초기화 실패:", error);
+        // 💡 백엔드 응답이 성공적일 때만 데이터 세팅
+        if (res.data && res.data.video_url) {
+          setVideoInfo(res.data);
+        }
+      } catch (err) {
+        console.error("영상 로드 실패", err);
       } finally {
         setLoading(false);
       }
     };
-
-    if (id) fetchInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (id) fetchVideo();
   }, [id]);
-
+  // 💡 로딩 중일 때는 플레이어 대신 스켈레톤이나 로딩 바를 보여줍니다.
+  if (loading)
+    return (
+      <div className="text-white text-center pt-20">
+        강의 정보를 가져오는 중...
+      </div>
+    );
   const handleQuizSelect = async (index) => {
     const correct = index === quizData.correct_index;
     setSelectedIndex(index);
@@ -76,13 +79,6 @@ export default function AiVideoWatch() {
     setShowSolution(true);
     // (기록 저장 로직은 기존대로 처리하시면 됩니다)
   };
-
-  if (loading)
-    return (
-      <div className="pt-32 text-center font-body text-xl font-bold">
-        로딩 중...
-      </div>
-    );
 
   return (
     <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto font-body">
