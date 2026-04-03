@@ -102,7 +102,7 @@ export default function SubjectMapPage() {
 
         {/* ✅ [수정됨] Tailwind CSS 동적 클래스 파싱 오류 수정 부분 */}
         <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide border-t border-white/5 bg-slate-950/50">
-          {SUBJECTS.map((sub) => (
+          {subjects.map((sub) => (
             <button
               key={sub.id}
               onClick={() => setSelectedSubject(sub)}
