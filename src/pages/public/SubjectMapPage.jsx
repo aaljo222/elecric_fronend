@@ -186,7 +186,7 @@ export default function SubjectMapPage() {
             <div
               className={`p-2 rounded-lg bg-gradient-to-br ${selectedSubject.color || "#3b82f6" || "from-pink-500 to-rose-500"} shadow-lg shadow-white/5`}
             >
-              <span className="text-xl">{selectedSubject.icon}</span>
+              <span className="text-xl">{selectedSubject?.icon || "🌐"}</span>
             </div>
             <div>
               <h1 className="text-lg font-bold text-white tracking-tight">
