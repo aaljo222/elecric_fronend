@@ -50,8 +50,13 @@ export default function SubjectMapPage() {
       try {
         const res = await apiClient.get("/api/graph/subjects");
         if (res.data && res.data.length > 0) {
-          setSubjects(res.data);
-          setSelectedSubject(res.data[0]);
+          // 💡 [핵심 추가] 이름(label)을 기준으로 중복된 과목 탭 제거
+          const uniqueSubjects = Array.from(
+            new Map(res.data.map((item) => [item.label, item])).values(),
+          );
+
+          setSubjects(uniqueSubjects);
+          setSelectedSubject(uniqueSubjects[0]); // 중복 제거된 배열의 첫 번째 값 선택
         }
       } catch (err) {
         console.error("과목 목록 로드 실패:", err);
