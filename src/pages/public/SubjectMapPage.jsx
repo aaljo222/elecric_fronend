@@ -85,14 +85,21 @@ export default function SubjectMapPage() {
         const res = await apiClient.get(
           `/api/graph/full-map/${encodeURIComponent(selectedSubject.id)}?include_formulas=true`,
         );
-        setGraphData(res.data);
-        setStats({
-          nodes: res.data.nodes?.length || 0,
-          links: res.data.links?.length || 0,
-        });
+
+        // 💡 [수정] 데이터를 상태에 넣기 전에 잠깐의 지연(setTimeout)을 주어
+        // 로딩 화면(loading: false)이 먼저 사라지고 컨테이너 크기가 확정된 후
+        // 그래프가 그려지도록 유도합니다.
+        setLoading(false);
+
+        setTimeout(() => {
+          setGraphData(res.data);
+          setStats({
+            nodes: res.data.nodes?.length || 0,
+            links: res.data.links?.length || 0,
+          });
+        }, 100); // 0.1초 지연
       } catch (err) {
         console.error("그래프 데이터 로드 실패:", err);
-      } finally {
         setLoading(false);
       }
     };
