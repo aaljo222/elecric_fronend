@@ -70,10 +70,30 @@ export default function AiVideoWatch() {
   // 💡 로딩 중일 때는 플레이어 대신 스켈레톤이나 로딩 바를 보여줍니다.
   if (loading)
     return (
-      <div className="text-white text-center pt-20">
-        강의 정보를 가져오는 중...
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-white font-bold">
+            강의 데이터를 가져오고 있습니다...
+          </p>
+        </div>
       </div>
     );
+
+  // 💡 데이터가 아예 없을 경우에 대한 예외 처리 추가
+  if (!videoInfo.video_url && !loading) {
+    return (
+      <div className="pt-32 text-center text-white">
+        <p>영상을 찾을 수 없습니다. (ID: {id})</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-4 text-blue-400 underline"
+        >
+          뒤로 가기
+        </button>
+      </div>
+    );
+  }
   const handleQuizSelect = async (index) => {
     const correct = index === quizData.correct_index;
     setSelectedIndex(index);
