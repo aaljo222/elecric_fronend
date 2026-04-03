@@ -138,11 +138,21 @@ export default function SubjectMapPage() {
 
   const handlePlayLecture = () => {
     if (!selectedNode) return;
-    const lectureId = selectedNode.lecture_id || selectedNode.id;
-    if (lectureId) move(`/user/videos/${lectureId}`);
-    else alert(`[${selectedNode.name}] 강의가 없습니다.`);
-  };
 
+    // 💡 'K:1234' 같은 ID에서 ':'를 기준으로 자른 뒤 뒷부분(순수 ID)만 가져옵니다.
+    const rawId = selectedNode.id.includes(":")
+      ? selectedNode.id.split(":")[1]
+      : selectedNode.id;
+
+    // DB에 명시된 lecture_id가 있으면 그걸 쓰고, 없으면 방금 정제한 rawId를 씁니다.
+    const lectureId = selectedNode.lecture_id || rawId;
+
+    if (lectureId) {
+      move(`/user/videos/${lectureId}`);
+    } else {
+      alert(`[${selectedNode.name}] 강의가 없습니다.`);
+    }
+  };
   // --- 5. 가드 렌더링 (에러 방지) ---
   if (!selectedSubject) {
     return (
