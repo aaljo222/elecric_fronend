@@ -1,41 +1,65 @@
 import useCustomMove from "@/hooks/useCustomMove";
-import { Lock, PlayCircle } from "lucide-react";
-import { useMemo } from "react";
+import { Loader2, Lock, PlayCircle } from "lucide-react"; // Loader2(로딩 아이콘) 추가
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-
-// ✅ 데이터 임포트
-import {
-  circuitLectures,
-  emLectures,
-  mathLectures,
-  visionLectures,
-} from "@/constants/videoData";
-
-const ALL_LECTURES = [
-  ...mathLectures,
-  ...circuitLectures,
-  ...emLectures,
-  ...visionLectures,
-];
 
 export default function VideoPlayerList() {
   const { id } = useParams();
   const { moveToRead } = useCustomMove("/user/videos");
 
-  // 1. 현재 보고 있는 영상의 정보를 찾아서 같은 과목(subject)의 영상들만 추출
+  // ✅ 1. 백엔드에서 데이터를 받아올 상태 추가
+  const [videoList, setVideoList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ✅ 2. 컴포넌트 로드 시 백엔드 API(/api/video/list) 호출
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const response = await fetch("/api/video/list");
+        if (!response.ok) throw new Error("네트워크 응답 에러");
+
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setVideoList(data);
+        }
+      } catch (error) {
+        console.error("재생 목록 데이터를 불러오지 못했습니다:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  // ✅ 3. 가져온 DB 데이터(videoList)를 기반으로 현재 과목 필터링
   const { currentSubjectLectures, currentTitle } = useMemo(() => {
-    const currentVideo = ALL_LECTURES.find((v) => v.id === id);
+    if (videoList.length === 0)
+      return { currentSubjectLectures: [], currentTitle: "" };
+
+    const currentVideo = videoList.find((v) => v.id === id);
     if (!currentVideo) return { currentSubjectLectures: [], currentTitle: "" };
 
-    const filtered = ALL_LECTURES.filter(
+    const filtered = videoList.filter(
       (v) => v.subject === currentVideo.subject,
     );
+
     return {
       currentSubjectLectures: filtered,
       currentTitle: currentVideo.subject,
     };
-  }, [id]);
+  }, [id, videoList]);
 
+  // 로딩 중일 때 표시할 UI
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 flex items-center justify-center h-[200px]">
+        <Loader2 className="animate-spin text-[#0047a5]" size={32} />
+      </div>
+    );
+  }
+
+  // 같은 과목의 강의가 1개 이하면 재생 목록을 아예 숨김
   if (currentSubjectLectures.length <= 1) return null;
 
   return (
@@ -55,7 +79,9 @@ export default function VideoPlayerList() {
       <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
         {currentSubjectLectures.map((video, index) => {
           const isActive = video.id === id;
-          const isLocked = !video.videoUrls || video.videoUrls[0] === "";
+
+          // ✅ 4. 백엔드 규격(video_url 문자열)에 맞게 잠금 확인 로직 수정
+          const isLocked = !video.video_url || video.video_url === "";
 
           return (
             <div
@@ -90,7 +116,10 @@ export default function VideoPlayerList() {
                 </h4>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[11px] text-gray-400 font-medium">
-                    {video.duration || "00:00"}
+                    {/* DB에 duration이 없으면 기본값 표시 */}
+                    {video.duration && video.duration !== "-"
+                      ? video.duration
+                      : "10:00"}
                   </span>
                   {isActive && (
                     <span className="text-[10px] bg-[#0047a5] text-white px-1.5 py-0.5 rounded font-bold animate-pulse">
@@ -100,7 +129,7 @@ export default function VideoPlayerList() {
                 </div>
               </div>
 
-              {/* 학습 완료 체크 (나중에 연동 가능) */}
+              {/* 학습 완료 체크 */}
               {!isLocked && !isActive && (
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <PlayCircle size={16} className="text-gray-300" />
