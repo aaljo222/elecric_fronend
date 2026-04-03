@@ -10,21 +10,23 @@ export default function SubjectMapPage() {
   const move = useMove("/user/videos");
 
   // --- 상태 관리 ---
-  const [subjects, setSubjects] = useState([]); // DB에서 가져온 과목 목록
+  const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ nodes: 0, links: 0 });
   const [selectedNode, setSelectedNode] = useState(null);
 
-  // 1. 초기 로딩 시 DB에서 '과목(Subject)' 목록만 먼저 가져오기
+  // 1. 초기 과목 목록 로드
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        // 백엔드에 과목 목록을 가져오는 API가 있다고 가정 (없을 시 하단 Cypher 참고)
         const res = await apiClient.get("/api/graph/subjects");
         setSubjects(res.data);
-        if (res.data.length > 0) setSelectedSubject(res.data[0]);
+        // 데이터가 존재할 때만 첫 번째 과목 선택
+        if (res.data && res.data.length > 0) {
+          setSelectedSubject(res.data[0]);
+        }
       } catch (err) {
         console.error("과목 목록 로드 실패:", err);
       }
@@ -32,9 +34,9 @@ export default function SubjectMapPage() {
     fetchSubjects();
   }, []);
 
-  // 2. 선택된 과목이 바뀔 때마다 해당 과목의 그래프 데이터 로드
+  // 2. 선택된 과목 변경 시 그래프 로드
   useEffect(() => {
-    if (!selectedSubject) return;
+    if (!selectedSubject?.id) return; // selectedSubject가 null이면 실행 안 함
 
     const fetchGraph = async () => {
       setLoading(true);
@@ -56,28 +58,14 @@ export default function SubjectMapPage() {
     fetchGraph();
   }, [selectedSubject]);
 
-  // --- 핸들러 ---
-  const handleNodeClick = (node) => {
-    if (!node) {
-      setSelectedNode(null);
-      return;
-    }
-    // DB에서 넘어온 속성(description, lecture_id, latex 등)이 포함된 노드 저장
-    setSelectedNode({ ...node });
-  };
-
-  const handlePlayLecture = () => {
-    if (!selectedNode) return;
-
-    // 💡 하드코딩 맵 없이, DB 노드에 저장된 lecture_id를 바로 사용합니다.
-    const lectureId = selectedNode.lecture_id;
-
-    if (lectureId) {
-      move(`/user/videos/${lectureId}`);
-    } else {
-      alert(`[${selectedNode.name}] 개념에 연결된 강의 정보가 DB에 없습니다.`);
-    }
-  };
+  // --- 가드 (Guard): 데이터가 로딩되기 전에는 빈 화면이나 스피너를 보여줌 ---
+  if (!selectedSubject) {
+    return (
+      <div className="h-screen bg-[#020617] flex items-center justify-center text-white">
+        과목 데이터를 불러오는 중...
+      </div>
+    );
+  }
 
   // ----------------------------------------------------------------------
   // 4. 렌더링 (JSX)
