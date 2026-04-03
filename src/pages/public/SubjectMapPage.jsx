@@ -183,7 +183,19 @@ export default function SubjectMapPage() {
     console.log("🚀 기본 ID로 이동합니다:", rawId);
     move(`/user/videos/${rawId}`);
   };
-
+  if (!selectedSubject) {
+    return (
+      <div className="h-screen bg-[#020617] flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin w-10 h-10 border-4 rounded-full border-blue-500 border-t-transparent"></div>
+          <p className="text-sm text-slate-400">
+            지식 맵을 준비하고 있습니다...
+          </p>
+        </div>
+      </div>
+    );
+  }
+  // 👆👆👆 [여기까지] 👆👆👆
   // --- 6. JSX (디자인 원본 유지) ---
   return (
     <div className="flex flex-col h-screen bg-[#020617] overflow-hidden relative font-sans text-slate-200">
