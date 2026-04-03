@@ -106,6 +106,10 @@ const NODE_TO_LECTURE_MAP = {
   인수분해: "math_factorization",
   "함수의 이해": "math_function",
   "호도법과 라디안": "math_radian",
+  // ✅ 새로 추가할 직선의 방정식 노드 매핑
+  "직선의 방정식": "62069c25429c16e898888d5611eb67b4",
+  "두 직선의 교점": "62069c25429c16e898888d5611eb67b4",
+  연립방정식: "62069c25429c16e898888d5611eb67b4",
   "삼각함수 완벽 이해": "c3d27bab5e1cf6ae9f07f70ae08c1e26",
   "허수와 복소수": "math_imaginary",
   "기하와 벡터": "math_vector",

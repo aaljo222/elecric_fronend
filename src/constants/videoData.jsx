@@ -85,6 +85,21 @@ export const mathLectures = [
     generator: generateBasicFunctionQuiz,
   },
   {
+    id: "62069c25429c16e898888d5611eb67b4", // 클라우드플레어 영상 해시 ID
+    subject: "기초수학 (중학)", // 💡 여기를 정확히 맞춰주세요!
+    title: "7강. 직선의 방정식과 두 직선의 교점", // 번호는 알맞게 조정해 주세요
+    duration: "-",
+    description:
+      "두 직선의 방정식을 이해하고, 연립방정식을 통해 두 직선이 만나는 교점을 구하는 방법을 학습합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/62069c25429c16e898888d5611eb67b4/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/62069c25429c16e898888d5611eb67b4/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/62069c25429c16e898888d5611eb67b4/manifest/video.m3u8",
+    ],
+  },
+  {
     id: "math_radian",
     subject: "기초수학 (고등)",
     title: "13강. 호도법과 라디안(Radian)",
