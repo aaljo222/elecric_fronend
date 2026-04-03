@@ -1,5 +1,4 @@
 import apiClient from "@/api/core/apiClient";
-import RecommendedVideo from "@/components/video/RecommendedVideo";
 import "katex/dist/katex.min.css";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -9,7 +8,6 @@ import ApiQuizCard from "@/components/quiz/ApiQuizCard";
 import QnaCard from "@/components/quiz/QnaCard";
 import VideoPlayer from "@/components/video/VideoPlayer";
 
-import VideoPlayerList from "@/components/video/VideoPlayList";
 import { MoveLeft } from "lucide-react";
 
 export default function AiVideoWatch() {
@@ -164,10 +162,10 @@ export default function AiVideoWatch() {
           </section>
         </div>
 
-        <aside className="lg:col-span-4 space-y-8">
+        {/* <aside className="lg:col-span-4 space-y-8">
           <VideoPlayerList />
           <RecommendedVideo count={4} />
-        </aside>
+        </aside> */}
       </div>
     </main>
   );
