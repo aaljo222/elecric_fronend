@@ -49,21 +49,23 @@ export default function AiVideoWatch() {
   };
 
   useEffect(() => {
-    const fetchVideo = async () => {
+    const fetchInitialData = async () => {
       try {
         setLoading(true);
+        // 1. 영상 주소 불러오기
         const res = await apiClient.get(`/api/video/url/${id}`);
-        // 💡 백엔드 응답이 성공적일 때만 데이터 세팅
-        if (res.data && res.data.video_url) {
-          setVideoInfo(res.data);
-        }
-      } catch (err) {
-        console.error("영상 로드 실패", err);
+        setVideoInfo({ video_url: res.data.video_url, title: res.data.title });
+
+        // 2. 💡 [추가] 영상 정보를 가져온 뒤 즉시 첫 번째 퀴즈도 불러옵니다.
+        await fetchRandomProblem();
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
       } finally {
         setLoading(false);
       }
     };
-    if (id) fetchVideo();
+
+    if (id) fetchInitialData();
   }, [id]);
   // 💡 로딩 중일 때는 플레이어 대신 스켈레톤이나 로딩 바를 보여줍니다.
   if (loading)
@@ -95,14 +97,21 @@ export default function AiVideoWatch() {
             {videoInfo.title}
           </h2>
 
-          <section className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 flex items-center justify-center">
-            {/* 💡 [수정 3] 하드코딩된 제목 대신 DB에서 가져온 진짜 제목 전달 */}
-            <VideoPlayer
-              videoUrl={videoInfo.video_url}
-              title={videoInfo.title}
-            />
-          </section>
-
+          {loading ? (
+            <div className="text-white text-center py-20">
+              데이터를 준비 중입니다...
+            </div>
+          ) : (
+            <section className="relative aspect-video bg-black rounded-xl overflow-hidden">
+              {/* 💡 video_url이 있을 때만 플레이어를 띄웁니다. */}
+              {videoInfo.video_url && (
+                <VideoPlayer
+                  videoUrl={videoInfo.video_url}
+                  title={videoInfo.title}
+                />
+              )}
+            </section>
+          )}
           <section className="scroll-mt-24">
             <div className="flex border-b border-gray-200 mt-8 mb-4">
               <button
