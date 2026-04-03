@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
 // ✅ [핵심 수정] 강력해진 LaTeX -> 텍스트 변환기
@@ -324,6 +324,14 @@ const FullMapGraph = ({
           fgRef.current.zoom(5, 1000);
         }}
         onBackgroundClick={() => setSelectedNode(null)}
+        nodeVal={(node) => {
+          if (node.group === "Subject") return 10; // 백엔드에서 50, 60으로 넘어오는 값을 10으로 축소!
+          if (node.group === "Chapter") return 8;
+          if (node.group === "Topic") return 5;
+          if (node.group === "Concept") return 3;
+          if (node.group === "Formula") return 2;
+          return node.val || 1;
+        }}
       />
     </div>
   );
