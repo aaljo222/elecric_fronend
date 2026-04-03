@@ -1,4 +1,3 @@
-// 불필요한 로컬 퀴즈 함수 import 전부 삭제! (generateFractionQuiz 등)
 import apiClient from "@/api/core/apiClient";
 import RecommendedVideo from "@/components/video/RecommendedVideo";
 import "katex/dist/katex.min.css";
@@ -6,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
-import ApiQuizCard from "@/components/quiz/ApiQuizCard"; // 💡 이것만 남깁니다.
+import ApiQuizCard from "@/components/quiz/ApiQuizCard";
 import QnaCard from "@/components/quiz/QnaCard";
 import VideoPlayer from "@/components/video/VideoPlayer";
 
@@ -14,7 +13,7 @@ import VideoPlayerList from "@/components/video/VideoPlayList";
 import { MoveLeft } from "lucide-react";
 
 export default function AiVideoWatch() {
-  const { id } = useParams(); // Neo4j에서 넘어온 lecture_id (예: e935dc...)
+  const { id } = useParams(); // Neo4j에서 넘어온 lecture_id
   const navigate = useNavigate();
   const user = useSelector((state) => state.login?.user) || { id: "guest_123" };
 
@@ -22,27 +21,14 @@ export default function AiVideoWatch() {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isCorrect, setIsCorrect] = useState(null);
   const [showSolution, setShowSolution] = useState(false);
-  const [videoUrl, setVideoUrl] = useState("");
+
+  // 💡 [수정 1] videoUrl 문자열 대신 객체로 변경하여 title도 함께 관리합니다.
+  const [videoInfo, setVideoInfo] = useState({ video_url: "", title: "" });
+
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("quiz");
 
-  useEffect(() => {
-    // 💡 1. 영상 URL 가져오기 (DB에서)
-    const fetchVideoData = async () => {
-      try {
-        setLoading(true);
-        const res = await apiClient.get(`/api/video/url/${id}`);
-        setVideoUrl(res.data.video_url);
-      } catch (error) {
-        console.error("영상 정보를 불러오지 못했습니다.", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchVideoData();
-  }, [id]);
-
-  // 💡 2. 문제 가져오기 (DB/백엔드 팩토리 함수에서)
+  // 💡 [수정 2] 컴포넌트가 마운트될 때 '영상'과 '첫 번째 퀴즈'를 동시에 불러오게 구조 변경
   const fetchRandomProblem = async () => {
     try {
       setSelectedIndex(null);
@@ -55,20 +41,40 @@ export default function AiVideoWatch() {
           ? "/api/em/random"
           : "/api/math/random";
 
-      // 백엔드로 id를 그대로 넘깁니다.
       const res = await apiClient.get(`${endpoint}?type=${id}`);
       setQuizData(res.data);
     } catch (e) {
-      console.error(e);
+      console.error("문제 로딩 실패:", e);
     }
   };
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        // 1. 영상 주소 불러오기
+        const res = await apiClient.get(`/api/video/url/${id}`);
+        setVideoInfo({ video_url: res.data.video_url, title: res.data.title });
+
+        // 2. 퀴즈 데이터 하나 바로 불러오기 (이게 없어서 퀴즈가 안 떴습니다!)
+        await fetchRandomProblem();
+      } catch (error) {
+        console.error("데이터 초기화 실패:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleQuizSelect = async (index) => {
     const correct = index === quizData.correct_index;
     setSelectedIndex(index);
     setIsCorrect(correct);
     setShowSolution(true);
-    // (기록 저장 로직 동일)
+    // (기록 저장 로직은 기존대로 처리하시면 됩니다)
   };
 
   if (loading)
@@ -89,28 +95,36 @@ export default function AiVideoWatch() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
+          <h2 className="text-2xl font-bold text-gray-900">
+            {videoInfo.title}
+          </h2>
+
           <section className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 flex items-center justify-center">
-            <VideoPlayer videoUrl={videoUrl} title={"강의 영상"} />
+            {/* 💡 [수정 3] 하드코딩된 제목 대신 DB에서 가져온 진짜 제목 전달 */}
+            <VideoPlayer
+              videoUrl={videoInfo.video_url}
+              title={videoInfo.title}
+            />
           </section>
 
           <section className="scroll-mt-24">
-            <div className="flex border-b border-gray-200 mt-8 mb-2">
+            <div className="flex border-b border-gray-200 mt-8 mb-4">
               <button
-                className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${activeTab === "quiz" ? "border-b-4 border-[#0047a5] text-[#0047a5]" : "text-gray-400"}`}
+                className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${activeTab === "quiz" ? "border-b-4 border-[#0047a5] text-[#0047a5]" : "text-gray-400 hover:text-gray-600"}`}
                 onClick={() => setActiveTab("quiz")}
               >
                 실전 퀴즈
               </button>
               <button
-                className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${activeTab === "qna" ? "border-b-4 border-[#0047a5] text-[#0047a5]" : "text-gray-400"}`}
+                className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${activeTab === "qna" ? "border-b-4 border-[#0047a5] text-[#0047a5]" : "text-gray-400 hover:text-gray-600"}`}
                 onClick={() => setActiveTab("qna")}
               >
                 질문 및 A/S
               </button>
             </div>
 
-            {/* 🌟 3. 완전히 정리된 렌더링 🌟 */}
             {activeTab === "quiz" ? (
+              // 💡 이제 퀴즈 탭이 열리자마자 백엔드에서 생성된 문제가 화면에 뜹니다!
               <ApiQuizCard
                 quizData={quizData}
                 selectedIndex={selectedIndex}
