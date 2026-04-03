@@ -139,19 +139,25 @@ export default function SubjectMapPage() {
   const handlePlayLecture = () => {
     if (!selectedNode) return;
 
-    // 💡 'K:1234' 같은 ID에서 ':'를 기준으로 자른 뒤 뒷부분(순수 ID)만 가져옵니다.
+    // 1. 'K:1234' 형태에서 '1234'만 추출
     const rawId = selectedNode.id.includes(":")
       ? selectedNode.id.split(":")[1]
       : selectedNode.id;
 
-    // DB에 명시된 lecture_id가 있으면 그걸 쓰고, 없으면 방금 정제한 rawId를 씁니다.
-    const lectureId = selectedNode.lecture_id || rawId;
+    // 2. DB에 수동으로 저장한 'lecture_id'를 최우선으로 사용합니다.
+    const finalId = selectedNode.lecture_id || rawId;
 
-    if (lectureId) {
-      move(`/user/videos/${lectureId}`);
-    } else {
-      alert(`[${selectedNode.name}] 강의가 없습니다.`);
+    // 3. 만약 finalId가 여전히 랜덤 UUID 형태(예: b5796...)라면 경고창을 띄우고 막습니다.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(finalId);
+
+    if (isUuid && !selectedNode.lecture_id) {
+      alert(
+        `[${selectedNode.name}] 개념에 연결된 정확한 강의 코드가 DB에 없습니다. lecture_id를 확인해주세요.`,
+      );
+      return;
     }
+
+    move(`/user/videos/${finalId}`);
   };
   // --- 5. 가드 렌더링 (에러 방지) ---
   if (!selectedSubject) {
