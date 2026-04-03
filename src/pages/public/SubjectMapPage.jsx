@@ -1,120 +1,48 @@
 import apiClient from "@/api/core/apiClient";
 import FullMapGraph from "@/components/graph/FullMapGraph";
-import { useEffect, useState } from "react";
-
-// 수식 렌더링 라이브러리
 import { Latex } from "@/components/public/Latex";
-import "katex/dist/katex.min.css";
-
-// 아이콘 라이브러리
 import useMove from "@/hooks/useMove";
+import "katex/dist/katex.min.css";
 import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
-
-// ----------------------------------------------------------------------
-// 1. 과목 상수 데이터 (SUBJECTS) - 수학 과목 추가됨
-// ----------------------------------------------------------------------
-const SUBJECTS = [
-  {
-    id: "기초수학",
-    label: "기초수학",
-    icon: "📐",
-    color: "from-pink-500 to-rose-500",
-    borderColor: "border-pink-500",
-    bgColor: "bg-pink-500",
-    themeColor: "#ec4899",
-  },
-  {
-    id: "심화수학",
-    label: "심화수학",
-    icon: "🧮",
-    color: "from-fuchsia-500 to-purple-500",
-    borderColor: "border-fuchsia-500",
-    bgColor: "bg-fuchsia-500",
-    themeColor: "#d946ef",
-  },
-  {
-    id: "전기자기학",
-    label: "전기자기학",
-    icon: "⚡",
-    color: "from-amber-500 to-orange-500",
-    borderColor: "border-amber-500",
-    bgColor: "bg-amber-500",
-    themeColor: "#f59e0b",
-  },
-  {
-    id: "전력공학",
-    label: "전력공학",
-    icon: "🏭",
-    color: "from-red-500 to-rose-500",
-    borderColor: "border-red-500",
-    bgColor: "bg-red-500",
-    themeColor: "#ef4444",
-  },
-  {
-    id: "전기기기",
-    label: "전기기기",
-    icon: "⚙️",
-    color: "from-blue-500 to-indigo-500",
-    borderColor: "border-blue-500",
-    bgColor: "bg-blue-500",
-    themeColor: "#3b82f6",
-  },
-  {
-    id: "회로이론",
-    label: "회로이론",
-    icon: "🔄",
-    color: "from-emerald-500 to-teal-500",
-    borderColor: "border-emerald-500",
-    bgColor: "bg-emerald-500",
-    themeColor: "#10b981",
-  },
-  {
-    id: "제어공학",
-    label: "제어공학",
-    icon: "🎛️",
-    color: "from-cyan-500 to-sky-500",
-    borderColor: "border-cyan-500",
-    bgColor: "bg-cyan-500",
-    themeColor: "#06b6d4",
-  },
-  {
-    id: "전기설비기술기준",
-    label: "설비기준",
-    icon: "📜",
-    color: "from-violet-500 to-purple-500",
-    borderColor: "border-violet-500",
-    bgColor: "bg-violet-500",
-    themeColor: "#8b5cf6",
-  },
-];
+import { useEffect, useState } from "react";
 
 export default function SubjectMapPage() {
   const move = useMove("/user/videos");
 
-  // 상태 관리
-  const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0]);
+  // --- 상태 관리 ---
+  const [subjects, setSubjects] = useState([]); // DB에서 가져온 과목 목록
+  const [selectedSubject, setSelectedSubject] = useState(null);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ nodes: 0, links: 0 });
   const [selectedNode, setSelectedNode] = useState(null);
-  const [focusNodes, setFocusNodes] = useState([]);
 
-  // ----------------------------------------------------------------------
-  // 2. 데이터 로딩 (API 호출)
-  // ----------------------------------------------------------------------
+  // 1. 초기 로딩 시 DB에서 '과목(Subject)' 목록만 먼저 가져오기
   useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        // 백엔드에 과목 목록을 가져오는 API가 있다고 가정 (없을 시 하단 Cypher 참고)
+        const res = await apiClient.get("/api/graph/subjects");
+        setSubjects(res.data);
+        if (res.data.length > 0) setSelectedSubject(res.data[0]);
+      } catch (err) {
+        console.error("과목 목록 로드 실패:", err);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
+  // 2. 선택된 과목이 바뀔 때마다 해당 과목의 그래프 데이터 로드
+  useEffect(() => {
+    if (!selectedSubject) return;
+
     const fetchGraph = async () => {
       setLoading(true);
-      setGraphData({ nodes: [], links: [] });
-      setSelectedNode(null);
-
       try {
         const res = await apiClient.get(
           `/api/graph/full-map/${encodeURIComponent(selectedSubject.id)}?include_formulas=true`,
         );
-
         setGraphData(res.data);
-
         setStats({
           nodes: res.data.nodes?.length || 0,
           links: res.data.links?.length || 0,
@@ -125,95 +53,26 @@ export default function SubjectMapPage() {
         setLoading(false);
       }
     };
-
     fetchGraph();
   }, [selectedSubject]);
 
-  // ----------------------------------------------------------------------
-  // 3. 유틸리티 함수 및 핸들러
-  // ----------------------------------------------------------------------
-  const cleanLatexTitle = (text) => {
-    if (!text) return "";
-    let processed = text.replaceAll("$", "");
-
-    const keywords = [
-      { from: "Wsigma", to: "\\sigma" },
-      { from: "Wpi", to: "\\pi" },
-      { key: "sigma" },
-      { key: "pi" },
-      { key: "mu" },
-      { key: "epsilon" },
-      { key: "nabla" },
-      { key: "int" },
-      { key: "frac" },
-      { key: "sqrt" },
-      { key: "cdot" },
-    ];
-
-    keywords.forEach((item) => {
-      if (item.from) {
-        processed = processed.replaceAll(item.from, item.to);
-      } else {
-        const regex = new RegExp(`(?<!\\\\)\\b${item.key}\\b`, "g");
-        processed = processed.replace(regex, `\\${item.key}`);
-      }
-    });
-    return processed;
-  };
-
+  // --- 핸들러 ---
   const handleNodeClick = (node) => {
     if (!node) {
       setSelectedNode(null);
       return;
     }
-
-    // 💡 핵심: DB에서 넘어온 노드 데이터 전체를 상태에 저장
-    const detailedNode = { ...node };
-
-    if (node.group === "Concept") {
-      const connectedFormulas = graphData.links
-        .filter((link) => {
-          const sId =
-            typeof link.source === "object" ? link.source.id : link.source;
-          const tId =
-            typeof link.target === "object" ? link.target.id : link.target;
-          return sId === node.id || tId === node.id;
-        })
-        .map((link) => {
-          const sId =
-            typeof link.source === "object" ? link.source.id : link.source;
-          const tId =
-            typeof link.target === "object" ? link.target.id : link.target;
-          const targetId = sId === node.id ? tId : sId;
-          return graphData.nodes.find((n) => n.id === targetId);
-        })
-        .filter((n) => n && n.group === "Formula");
-
-      detailedNode.connectedFormulas = connectedFormulas;
-    } else if (node.group === "Formula") {
-      detailedNode.name = "수식 상세";
-      detailedNode.connectedFormulas = [
-        {
-          id: node.id,
-          latex: node.latex,
-          name: node.name,
-          description: node.description,
-        },
-      ];
-    }
-
-    setSelectedNode(detailedNode);
+    // DB에서 넘어온 속성(description, lecture_id, latex 등)이 포함된 노드 저장
+    setSelectedNode({ ...node });
   };
 
   const handlePlayLecture = () => {
     if (!selectedNode) return;
 
-    // 💡 DB 노드에 'lecture_id' 또는 'video_id' 속성이 저장되어 있다고 가정합니다.
-    // 만약 속성명이 다르다면 DB에서 내려주는 필드명으로 맞춰주세요.
-    const lectureId = selectedNode.lecture_id || selectedNode.id;
+    // 💡 하드코딩 맵 없이, DB 노드에 저장된 lecture_id를 바로 사용합니다.
+    const lectureId = selectedNode.lecture_id;
 
     if (lectureId) {
-      console.log(`Moving to lecture: ${lectureId}`);
       move(`/user/videos/${lectureId}`);
     } else {
       alert(`[${selectedNode.name}] 개념에 연결된 강의 정보가 DB에 없습니다.`);
