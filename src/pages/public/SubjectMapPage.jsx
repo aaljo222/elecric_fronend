@@ -3,29 +3,28 @@ import FullMapGraph from "@/components/graph/FullMapGraph";
 import { Latex } from "@/components/public/Latex";
 import useMove from "@/hooks/useMove";
 import "katex/dist/katex.min.css";
-import { BookOpen, Calculator, PenTool, Play, X } from "lucide-react";
+import { BookOpen, Calculator, PenTool, Play, X } from "lucide-center";
 import { useEffect, useState } from "react";
 
 export default function SubjectMapPage() {
   const move = useMove("/user/videos");
 
   // --- 상태 관리 ---
-  const [subjects, setSubjects] = useState([]);
+  const [subjects, setSubjects] = useState([]); // 💡 DB에서 가져온 과목 목록 저장
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ nodes: 0, links: 0 });
   const [selectedNode, setSelectedNode] = useState(null);
 
-  // 1. 초기 과목 목록 로드
+  // 1. 초기 과목 목록 로드 (404 방지를 위해 백엔드 API와 경로 일치 확인)
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
         const res = await apiClient.get("/api/graph/subjects");
-        setSubjects(res.data);
-        // 데이터가 존재할 때만 첫 번째 과목 선택
         if (res.data && res.data.length > 0) {
-          setSelectedSubject(res.data[0]);
+          setSubjects(res.data);
+          setSelectedSubject(res.data[0]); // 첫 번째 과목을 기본 선택
         }
       } catch (err) {
         console.error("과목 목록 로드 실패:", err);
@@ -36,7 +35,7 @@ export default function SubjectMapPage() {
 
   // 2. 선택된 과목 변경 시 그래프 로드
   useEffect(() => {
-    if (!selectedSubject?.id) return; // selectedSubject가 null이면 실행 안 함
+    if (!selectedSubject?.id) return;
 
     const fetchGraph = async () => {
       setLoading(true);
@@ -58,8 +57,8 @@ export default function SubjectMapPage() {
     fetchGraph();
   }, [selectedSubject]);
 
-  // --- 가드 (Guard): 데이터가 로딩되기 전에는 빈 화면이나 스피너를 보여줌 ---
-  if (!selectedSubject) {
+  // ✅ 데이터 가드: subjects가 로딩되지 않았을 때의 크래시 방지
+  if (!selectedSubject || subjects.length === 0) {
     return (
       <div className="h-screen bg-[#020617] flex items-center justify-center text-white">
         과목 데이터를 불러오는 중...
