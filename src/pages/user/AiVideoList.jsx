@@ -268,49 +268,44 @@ export default function VideoListPage() {
   const [videoList, setVideoList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ 2. 백엔드 API 호출 및 더미 데이터 Fallback 로직
+  // ✅ 2. 백엔드 API 호출 부분 수정
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        // 실제 운영 환경에서는 Axios 또는 설정된 API 주소를 사용하세요.
         const response = await fetch("/api/video/list");
-
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
-        }
 
         const data = await response.json();
 
-        // 서버에서 정상적으로 데이터를 가져왔으나 비어있지 않은 경우
         if (data && data.length > 0) {
-          // 백엔드 응답(Neo4j 데이터)을 프론트엔드 카드 형식에 맞게 매핑
           const mappedData = data.map((v, index) => ({
-            id: index, // 실제 DB의 고유 ID가 있다면 그걸 사용하세요
+            id: index,
             title: v.title || "제목 없음",
             videoUrls: v.video_url ? [v.video_url] : [],
             subject: "영상 강의",
             description: v.message || "백엔드에서 불러온 영상입니다.",
             createdAt: v.created_at || "2026-01-01",
+
+            // ⭐ 여기에 DB에서 받아온 개별 Manim 영상 경로를 매핑합니다.
+            // DB에 없다면 규칙을 만들어(예: 강의 ID 기반) 경로를 지정할 수 있습니다.
+            manimUrl: v.manim_url || `/videos/manim/lecture_${index}.webm`,
           }));
           setVideoList(mappedData);
         } else {
-          // 데이터가 빈 배열([])로 온 경우 에러를 던져 더미 데이터를 타게 함
           throw new Error("백엔드에 영상 데이터가 없습니다.");
         }
       } catch (error) {
-        console.warn(
-          "⚠️ 데이터를 불러오지 못해 더미 데이터로 전환합니다:",
-          error.message,
-        );
-        // 통신 실패 또는 데이터가 없을 때 기존 상수로 정의된 더미 데이터 사용
+        console.warn("⚠️ 더미 데이터로 전환합니다:", error.message);
+        // 더미 데이터 사용 시에도 manimUrl 필드를 추가해 주어야 합니다.
         setVideoList(ALL_LECTURES);
       } finally {
-        setIsLoading(false); // 로딩 종료
+        setIsLoading(false);
       }
     };
 
     fetchVideos();
-  }, []); // 컴포넌트 마운트 시 1회 실행
+  }, []);
 
   // ✅ 3. 기존 ALL_LECTURES 대신 동적인 videoList 상태를 바라보도록 수정
   const { activeVideos, lockedVideos } = useMemo(() => {
