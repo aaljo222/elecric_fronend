@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import CoulombsLawWidget from "../animaions/CoulombsLawWidget";
+import CoulombsLaw3DPage from "../animaions/CoulombsLaw3DPage";
 import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
 import ParallelResistanceWidget from "../animaions/ParallelResistanceWidget";
 import YDeltaConverterWidget from "../animaions/YDeltaConverterWidget";
@@ -20,7 +20,7 @@ const WIDGET_MAP = {
   trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
   ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
   y_delta_converter: YDeltaConverterWidget, // 👈 null 대신 추가!
-  coulombs_law: CoulombsLawWidget,
+  coulombs_law: CoulombsLaw3DPage,
 };
 
 const getCategory = (lecture) => {
