@@ -1,8 +1,6 @@
-// 🌟 1. 이 줄이 없어서 에러가 발생했습니다. 필수로 추가해주세요!
-import { Play } from "lucide-react";
+import { Play } from "lucide-react"; // 🌟 Play 아이콘 에러 해결!
 
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
-  console.log("ActiveVideoCard ,video:", video);
   const finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
@@ -28,8 +26,8 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
         {video.widgetType && (
           <button
             onClick={(e) => {
-              e.stopPropagation(); // 카드 전체 클릭(영상 이동) 방지
-              onOpenModal(video); // 위젯 모달 열기
+              e.stopPropagation(); // 카드 전체 클릭 방지
+              onOpenModal(video); // 모달 열기
             }}
             className="absolute top-4 right-4 z-10 bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-full shadow-lg transition-all hover:scale-110 flex items-center justify-center group/widget"
             title="실습 도구 열기"
@@ -57,7 +55,6 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
         {/* 3. 중앙: 호버 시 재생 아이콘 */}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
-            {/* 🌟 바로 여기서 에러가 났던 것입니다 */}
             <Play className="text-[#0047a5] fill-current ml-1" size={28} />
           </div>
         </div>
