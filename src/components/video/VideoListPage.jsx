@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
+import ParallelResistanceWidget from "../animaions/ParallelResistanceWidget";
 
 // 💡 [필독] 인터랙티브 위젯 컴포넌트를 만들으셨다면 아래 주석을 풀고 경로를 맞추세요.
 // import InteractiveUnitCircle from "./widgets/InteractiveUnitCircle";
@@ -20,7 +21,7 @@ import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
 // ==========================================
 const WIDGET_MAP = {
   trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
-  ohms_law: null, // 예: OhmsLawWidget
+  ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
 };
 
 const getCategory = (lecture) => {
