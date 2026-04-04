@@ -108,6 +108,7 @@ const HeroBanner = ({ currentCategoryData, total }) => (
 );
 
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
+  console.log("ActiveVideoCard ,video:", video);
   const finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
