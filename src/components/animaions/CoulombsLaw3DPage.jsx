@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-const CoulombsLawWidget = () => {
+const CoulombsLaw3DPage = () => {
   const mountRef = useRef(null);
   const [q1, setQ1] = useState(5);
   const [q2, setQ2] = useState(-3);
@@ -269,4 +269,4 @@ const CoulombsLawWidget = () => {
   );
 };
 
-export default CoulombsLawWidget;
+export default CoulombsLaw3DPage;

@@ -3,14 +3,6 @@ import useCustomMove from "@/hooks/useCustomMove";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 // 🌟 3D 위젯들 Import 추가
-import AmpereLawWidget from "../animaions/AmpereLawWidget";
-import DcRectificationWidget from "../animaions/DcRectificationWidget";
-import Equipotential3DWidget from "../animaions/Equipotential3DWidget";
-import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
-import ParabolaIntersection from "../animaions/ParabolaIntersection";
-import ParallelResistanceWidget from "../animaions/ParallelResistanceWidget";
-import RotatingMagneticFieldWidget from "../animaions/RotatingMagneticFieldWidget";
-import YDeltaConverterWidget from "../animaions/YDeltaConverterWidget";
 import ActiveVideoCard from "./ActiveVideoCard";
 import DetailModal from "./DetailModal";
 import HeroBanner from "./HeroBanner";
@@ -18,17 +10,6 @@ import LockedVideoCard from "./LockedVideoCard";
 // ==========================================
 // 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
 // ==========================================
-const WIDGET_MAP = {
-  trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
-  ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
-  y_delta_converter: YDeltaConverterWidget, // 👈 null 대신 추가!
-  coulombs_law: CoulombsLaw3DPage,
-  rotating_field: RotatingMagneticFieldWidget, // 회전자기장 (기기)
-  dc_rectifier: DcRectificationWidget, // DC 정류 (기기)
-  equipotential: Equipotential3DWidget, // 등전위면 (전자기)
-  ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
-  parabolaWidget: ParabolaIntersection,
-};
 
 const getCategory = (lecture) => {
   const sub = lecture.subject || "";

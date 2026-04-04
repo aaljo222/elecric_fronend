@@ -1,3 +1,5 @@
+import WIDGET_MAP from "@/utils/widgetData";
+
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
 
