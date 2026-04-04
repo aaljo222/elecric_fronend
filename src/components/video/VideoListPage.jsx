@@ -13,6 +13,12 @@ import CoulombsLaw3DPage from "../animaions/CoulombsLaw3DPage";
 import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
 import ParallelResistanceWidget from "../animaions/ParallelResistanceWidget";
 import YDeltaConverterWidget from "../animaions/YDeltaConverterWidget";
+// 🌟 3D 위젯들 Import 추가
+import AmpereLawWidget from "../animaions/AmpereLawWidget";
+import DcRectificationWidget from "../animaions/DcRectificationWidget";
+import Equipotential3DWidget from "../animaions/Equipotential3DWidget";
+import FlemingLeftHandWidget from "../animaions/FlemingLeftHandWidget";
+import RotatingMagneticFieldWidget from "../animaions/RotatingMagneticFieldWidget";
 // ==========================================
 // 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
 // ==========================================
@@ -21,6 +27,12 @@ const WIDGET_MAP = {
   ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
   y_delta_converter: YDeltaConverterWidget, // 👈 null 대신 추가!
   coulombs_law: CoulombsLaw3DPage,
+  coulombs_law: CoulombsLaw3DPage, // 쿨롱의 법칙 (전자기)
+  fleming_left: FlemingLeftHandWidget, // 플레밍 왼손 (기기/전자기)
+  rotating_field: RotatingMagneticFieldWidget, // 회전자기장 (기기)
+  dc_rectifier: DcRectificationWidget, // DC 정류 (기기)
+  equipotential: Equipotential3DWidget, // 등전위면 (전자기)
+  ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
 };
 
 const getCategory = (lecture) => {
