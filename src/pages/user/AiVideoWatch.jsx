@@ -78,18 +78,21 @@ export default function AiVideoWatch() {
   const [isCorrect, setIsCorrect] = useState(null);
   const [showSolution, setShowSolution] = useState(false);
 
-  // 💡 [추가] 랜덤 퀴즈 로드 함수 (Matplotlib 이미지 포함된 데이터)
+  // AiVideoWatch.jsx 내부 함수 수정
   const fetchRandomQuiz = async () => {
     try {
+      // 1. 새로운 데이터를 가져오기 전에 모든 상태를 즉시 초기화!
       setSelectedIndex(null);
       setIsCorrect(null);
       setShowSolution(false);
+      setQuizData(null); // 💡 문제를 잠시 비워 로딩 효과를 줍니다.
 
-      // id에 따라 math/circuit/em 등 적절한 엔드포인트 호출
       const endpoint = id.includes("circuit")
         ? "/api/circuit/random"
         : "/api/math/random";
       const res = await apiClient.get(`${endpoint}?type=${id}`);
+
+      // 2. 새로운 데이터 세팅
       setQuizData(res.data);
     } catch (e) {
       console.error("퀴즈 로딩 실패:", e);
