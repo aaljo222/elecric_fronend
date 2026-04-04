@@ -101,12 +101,20 @@ export const mathLectures = [
     ],
   },
   // 💡 2. 여기에 '포물선과 직선의 교점' 데이터 추가
-  // constants/videoData.js
+  // constants/videoData.js 내부 수정
   {
-    id: "61b1ec56bcd7e87535d18c40bb9afb21", // 이 ID가 백엔드 get_math_problem의 key가 됩니다.
+    id: "61b1ec56bcd7e87535d18c40bb9afb21",
     subject: "기초수학 (중학)",
     title: "8강. 포물선과 직선의 교점",
-    useBackend: true, // 백엔드 호출이 필요한 퀴즈임을 표시하는 플래그 (선택사항)
+    duration: "10:30", // 적절한 시간 입력
+    description:
+      "이차함수와 일차함수의 연립방정식을 통해 교점의 좌표를 찾는 방법을 배웁니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/61b1ec56bcd7e87535d18c40bb9afb21/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    video_url:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/61b1ec56bcd7e87535d18c40bb9afb21/watch", // 👈 이 필드가 있어야 목록에서 보입니다!
+    useBackend: true,
   },
   {
     id: "math_radian",
