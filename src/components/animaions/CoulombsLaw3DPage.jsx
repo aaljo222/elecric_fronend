@@ -2,58 +2,73 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-export default function CoulombsLaw3DPage() {
+const CoulombsLawWidget = () => {
   const mountRef = useRef(null);
   const [q1, setQ1] = useState(5);
   const [q2, setQ2] = useState(-3);
   const [distance, setDistance] = useState(0.2);
 
   useEffect(() => {
-    // 1. Scene, Camera, Renderer 초기화
+    if (!mountRef.current) return;
+
+    // 1. Scene & Camera 초기화
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f172a); // 슬레이트 다크 배경
 
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000,
-    );
-    camera.position.set(0, 5, 10); // 카메라를 살짝 위에서 비스듬히 내려다보게 설정
+    // 💡 화면 전체(window)가 아닌, 부모 컨테이너(모달)의 크기를 가져옵니다.
+    const width = mountRef.current.clientWidth;
+    const height = mountRef.current.clientHeight;
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(0, 8, 15); // 카메라 각도를 살짝 더 위로 조정하여 한눈에 보이게 함
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio); // 고해상도 모니터 대응
     mountRef.current.appendChild(renderer.domElement);
 
-    // 2. 컨트롤러 (마우스 회전, 줌)
+    // 2. 컨트롤러
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-    // 3. 조명 세팅
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // 3. 🌟 조명(Lighting) 대폭 강화 (화사하고 선명하게) 🌟
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // 전체 밝기 증가
     scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(5, 5, 5);
-    scene.add(pointLight);
 
-    // 4. 바닥 그리드 헬퍼 (공간감 부여)
-    const gridHelper = new THREE.GridHelper(10, 20, 0x334155, 0x1e293b);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0); // 강한 직사광선
+    directionalLight.position.set(10, 20, 15);
+    scene.add(directionalLight);
+
+    const backLight = new THREE.DirectionalLight(0xffffff, 0.8); // 뒷면 그림자 방지용
+    backLight.position.set(-10, 10, -15);
+    scene.add(backLight);
+
+    // 4. 바닥 그리드
+    const gridHelper = new THREE.GridHelper(20, 40, 0x3b82f6, 0x1e293b);
+    gridHelper.material.opacity = 0.4;
+    gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
-    // 5. 전하 구체 (Sphere) 메쉬 생성
-    const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+    // 5. 전하 구체 (크기와 질감 개선)
+    const sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
 
-    const mat1 = new THREE.MeshStandardMaterial({
-      color: 0xef4444,
-      roughness: 0.2,
-    }); // Red
+    // MeshPhysicalMaterial을 사용하여 플라스틱/유리처럼 반짝이게 만듭니다.
+    const mat1 = new THREE.MeshPhysicalMaterial({
+      color: 0xff4444,
+      roughness: 0.1,
+      metalness: 0.1,
+      clearcoat: 1.0,
+    });
     const sphere1 = new THREE.Mesh(sphereGeometry, mat1);
     scene.add(sphere1);
 
-    const mat2 = new THREE.MeshStandardMaterial({
-      color: 0x3b82f6,
-      roughness: 0.2,
-    }); // Blue
+    const mat2 = new THREE.MeshPhysicalMaterial({
+      color: 0x4488ff,
+      roughness: 0.1,
+      metalness: 0.1,
+      clearcoat: 1.0,
+    });
     const sphere2 = new THREE.Mesh(sphereGeometry, mat2);
     scene.add(sphere2);
 
@@ -61,25 +76,27 @@ export default function CoulombsLaw3DPage() {
     let animationFrameId;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      controls.update(); // OrbitControls 부드럽게
+      controls.update();
       renderer.render(scene, camera);
     };
     animate();
 
-    // 7. 리사이즈 대응
-    const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-    window.addEventListener("resize", handleResize);
+    // 7. 💡 ResizeObserver: 모달 창 크기가 변할 때마다 캔버스 크기를 정확히 다시 맞춤 (스크롤 방지)
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+    });
+    resizeObserver.observe(mountRef.current);
 
-    // 메모리에 저장해두고 외부에서 접근할 수 있도록 세팅
+    // 메모리 저장
     mountRef.current.sceneObjects = { sphere1, sphere2, mat1, mat2 };
 
     return () => {
-      // 컴포넌트 언마운트 시 클린업
-      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
       if (mountRef.current) {
         mountRef.current.removeChild(renderer.domElement);
@@ -88,24 +105,22 @@ export default function CoulombsLaw3DPage() {
     };
   }, []);
 
-  // 🌟 React State 변경 시 Three.js 오브젝트 업데이트
+  // 🌟 React State 변경 시 오브젝트 업데이트
   useEffect(() => {
     if (!mountRef.current?.sceneObjects) return;
     const { sphere1, sphere2, mat1, mat2 } = mountRef.current.sceneObjects;
 
-    // 1. 거리에 따른 위치 업데이트 (X축 기준으로 배치)
-    // 시각적 연출을 위해 distance(0.1~1.0)에 상수를 곱해 넓게 띄웁니다.
-    const visualDist = distance * 10;
-    sphere1.position.set(-visualDist / 2, 0.5, 0);
-    sphere2.position.set(visualDist / 2, 0.5, 0);
+    const visualDist = distance * 12; // 시각적 거리를 약간 넓힘
+    sphere1.position.set(-visualDist / 2, 1, 0);
+    sphere2.position.set(visualDist / 2, 1, 0);
 
-    // 2. 전하량에 따른 구체 크기 업데이트
-    sphere1.scale.setScalar(0.5 + Math.abs(q1) * 0.1);
-    sphere2.scale.setScalar(0.5 + Math.abs(q2) * 0.1);
+    // 전하량 0일 때 너무 작아지지 않게 기본 스케일 유지
+    sphere1.scale.setScalar(0.6 + Math.abs(q1) * 0.08);
+    sphere2.scale.setScalar(0.6 + Math.abs(q2) * 0.08);
 
-    // 3. 전하 부호에 따른 색상 업데이트
-    mat1.color.setHex(q1 > 0 ? 0xef4444 : q1 < 0 ? 0x3b82f6 : 0x94a3b8);
-    mat2.color.setHex(q2 > 0 ? 0xef4444 : q2 < 0 ? 0x3b82f6 : 0x94a3b8);
+    // 색상 쨍하게 업데이트 (빨강: 양전하, 파랑: 음전하, 회색: 0)
+    mat1.color.setHex(q1 > 0 ? 0xff3333 : q1 < 0 ? 0x3377ff : 0x888888);
+    mat2.color.setHex(q2 > 0 ? 0xff3333 : q2 < 0 ? 0x3377ff : 0x888888);
   }, [q1, q2, distance]);
 
   // 계산식
@@ -114,20 +129,32 @@ export default function CoulombsLaw3DPage() {
   const force = forceRaw.toFixed(3);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Three.js Canvas 마운트 영역 */}
-      <div ref={mountRef} className="absolute inset-0" />
+    // 💡 부모 태그에 고정 높이(h-[600px] 등)를 주어 모달 안에서 스크롤이 생기지 않도록 고정합니다.
+    <div className="relative w-full h-[600px] rounded-2xl overflow-hidden bg-[#0f172a] shadow-inner font-sans border border-slate-800">
+      {/* Three.js Canvas가 그려질 영역 */}
+      <div ref={mountRef} className="absolute inset-0 w-full h-full" />
 
-      {/* HTML UI 오버레이 (좌측 상단 컨트롤 패널) */}
-      <div className="absolute top-6 left-6 w-80 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-2xl border border-white/20">
-        <h1 className="text-xl font-bold text-gray-800 mb-6">
-          ⚡ 3D 쿨롱의 법칙
-        </h1>
+      {/* 왼쪽 위: 컨트롤 UI 패널 */}
+      <div className="absolute top-4 left-4 w-[320px] bg-white/95 backdrop-blur-md p-5 rounded-2xl shadow-2xl border border-white/20 z-10 flex flex-col pointer-events-auto transition-transform">
+        <h2 className="text-lg font-extrabold text-gray-800 mb-4 flex items-center gap-2">
+          ⚡ 쿨롱의 법칙 시뮬레이터
+        </h2>
 
         <div className="space-y-4">
-          <div>
-            <label className="flex justify-between text-sm font-bold text-gray-600 mb-1">
-              <span>전하 1 (Q₁)</span> <span>{q1} µC</span>
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <label className="flex justify-between text-xs font-bold text-gray-600 mb-2">
+              <span>전하 1 (Q₁)</span>{" "}
+              <span
+                className={
+                  q1 > 0
+                    ? "text-red-600"
+                    : q1 < 0
+                      ? "text-blue-600"
+                      : "text-gray-500"
+                }
+              >
+                {q1} µC
+              </span>
             </label>
             <input
               type="range"
@@ -135,12 +162,24 @@ export default function CoulombsLaw3DPage() {
               max="10"
               value={q1}
               onChange={(e) => setQ1(Number(e.target.value))}
-              className="w-full"
+              className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer"
             />
           </div>
-          <div>
-            <label className="flex justify-between text-sm font-bold text-gray-600 mb-1">
-              <span>전하 2 (Q₂)</span> <span>{q2} µC</span>
+
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <label className="flex justify-between text-xs font-bold text-gray-600 mb-2">
+              <span>전하 2 (Q₂)</span>{" "}
+              <span
+                className={
+                  q2 > 0
+                    ? "text-red-600"
+                    : q2 < 0
+                      ? "text-blue-600"
+                      : "text-gray-500"
+                }
+              >
+                {q2} µC
+              </span>
             </label>
             <input
               type="range"
@@ -148,12 +187,14 @@ export default function CoulombsLaw3DPage() {
               max="10"
               value={q2}
               onChange={(e) => setQ2(Number(e.target.value))}
-              className="w-full"
+              className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer"
             />
           </div>
-          <div>
-            <label className="flex justify-between text-sm font-bold text-gray-600 mb-1">
-              <span>거리 (r)</span> <span>{distance} m</span>
+
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <label className="flex justify-between text-xs font-bold text-gray-600 mb-2">
+              <span>거리 (r)</span>{" "}
+              <span className="text-emerald-600">{distance} m</span>
             </label>
             <input
               type="range"
@@ -162,33 +203,36 @@ export default function CoulombsLaw3DPage() {
               step="0.1"
               value={distance}
               onChange={(e) => setDistance(Number(e.target.value))}
-              className="w-full"
+              className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
           </div>
         </div>
+      </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500 mb-1">전기력 크기 (F)</p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-black text-gray-900">{force}</span>
-            <span className="text-lg font-bold text-gray-500">N</span>
-          </div>
-          <p className="mt-2 text-sm font-bold">
-            {q1 * q2 < 0 ? (
-              <span className="text-pink-600">인력 (당김)</span>
-            ) : q1 * q2 > 0 ? (
-              <span className="text-purple-600">척력 (밀어냄)</span>
-            ) : (
-              <span className="text-gray-400">힘 없음</span>
-            )}
-          </p>
+      {/* 오른쪽 위: 결과 표시 패널 */}
+      <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-6 py-4 rounded-2xl shadow-2xl border border-white/20 z-10 pointer-events-auto min-w-[200px] text-center">
+        <p className="text-xs text-gray-500 font-bold mb-1">전기력 크기 (F)</p>
+        <div className="flex items-baseline justify-center gap-1 mb-2">
+          <span className="text-3xl font-black text-gray-900">{force}</span>
+          <span className="text-base font-bold text-gray-400">N</span>
+        </div>
+        <div
+          className={`text-sm font-bold px-3 py-1.5 rounded-full ${q1 * q2 < 0 ? "bg-pink-100 text-pink-700" : q1 * q2 > 0 ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-500"}`}
+        >
+          {q1 * q2 < 0
+            ? "인력 (당김)"
+            : q1 * q2 > 0
+              ? "척력 (밀어냄)"
+              : "힘 없음"}
         </div>
       </div>
 
-      {/* 화면 조작 가이드 */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/50 text-white px-6 py-2 rounded-full text-sm backdrop-blur-sm pointer-events-none">
-        마우스 좌클릭: 회전 / 우클릭: 이동 / 스크롤: 줌
+      {/* 하단 중앙: 조작 가이드 */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white/90 px-6 py-2 rounded-full text-xs font-medium tracking-wide backdrop-blur-sm pointer-events-none">
+        🖱️ 마우스 좌클릭: 회전 | 우클릭: 이동 | 스크롤: 줌
       </div>
     </div>
   );
-}
+};
+
+export default CoulombsLawWidget;
