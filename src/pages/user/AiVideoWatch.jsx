@@ -181,16 +181,7 @@ export default function AiVideoWatch() {
       {/* 💡 [수정] 퀴즈 카드 영역 - Props 전달 필수! */}
       {/* 💡 퀴즈 카드 영역: 함수 이름(onFetch)을 자식과 일치시킵니다! */}
       <section className="max-w-4xl mx-auto w-full">
-        <ApiQuizCard
-          // key값이 바뀌면 리액트가 컴포넌트를 완전히 새로 그립니다 (강력한 초기화)
-          key={quizData?.problem_id || "loading"}
-          quizData={quizData}
-          selectedIndex={selectedIndex}
-          isCorrect={isCorrect}
-          showSolution={showSolution}
-          onSelect={handleQuizSelect}
-          onFetch={fetchRandomQuiz} // 👈 'onNext'에서 'onFetch'로 이름 수정 완료!
-        />
+        <ApiQuizCard lectureId={id} />
       </section>
     </main>
   );
