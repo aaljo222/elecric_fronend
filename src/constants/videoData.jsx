@@ -5,7 +5,7 @@ import {
   generateFactorizationQuiz,
   generateFractionQuiz,
   generateLogarithmQuiz,
-  generatePerfectSquareQuiz, // 💡 1. 방금 만든 함수 import 추가
+  generatePerfectSquareQuiz,
 } from "@/utils/quizUtils";
 
 // 1. 기초수학 데이터
@@ -99,6 +99,14 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/62069c25429c16e898888d5611eb67b4/watch",
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/62069c25429c16e898888d5611eb67b4/manifest/video.m3u8",
     ],
+  },
+  // 💡 2. 여기에 '포물선과 직선의 교점' 데이터 추가
+  // constants/videoData.js
+  {
+    id: "61b1ec56bcd7e87535d18c40bb9afb21", // 이 ID가 백엔드 get_math_problem의 key가 됩니다.
+    subject: "기초수학 (중학)",
+    title: "8강. 포물선과 직선의 교점",
+    useBackend: true, // 백엔드 호출이 필요한 퀴즈임을 표시하는 플래그 (선택사항)
   },
   {
     id: "math_radian",
