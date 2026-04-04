@@ -5,10 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 // ==========================================
-// 1. (통합) 내부용 재생 목록 컴포넌트
+// 1. 내부용 재생 목록 컴포넌트
 // ==========================================
 const SidebarPlaylist = ({ currentId, currentSubject, allVideos, onMove }) => {
-  // 현재 보고 있는 영상과 같은 과목의 영상들만 필터링
   const playlist = useMemo(() => {
     return allVideos.filter((v) => v.subject === currentSubject);
   }, [allVideos, currentSubject]);
@@ -67,23 +66,52 @@ const SidebarPlaylist = ({ currentId, currentSubject, allVideos, onMove }) => {
 export default function AiVideoWatch() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // 영상 관련 상태
   const [videoInfo, setVideoInfo] = useState(null);
-  const [allVideos, setAllVideos] = useState([]); // 전체 목록 저장용
+  const [allVideos, setAllVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // 💡 [추가] 퀴즈 관련 상태
+  const [quizData, setQuizData] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [showSolution, setShowSolution] = useState(false);
+
+  // 💡 [추가] 랜덤 퀴즈 로드 함수 (Matplotlib 이미지 포함된 데이터)
+  const fetchRandomQuiz = async () => {
+    try {
+      setSelectedIndex(null);
+      setIsCorrect(null);
+      setShowSolution(false);
+
+      // id에 따라 math/circuit/em 등 적절한 엔드포인트 호출
+      const endpoint = id.includes("circuit")
+        ? "/api/circuit/random"
+        : "/api/math/random";
+      const res = await apiClient.get(`${endpoint}?type=${id}`);
+      setQuizData(res.data);
+    } catch (e) {
+      console.error("퀴즈 로딩 실패:", e);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        // 1. 현재 영상 정보 가져오기
+        // 1. 영상 정보
         const resUrl = await apiClient.get(`/api/video/url/${id}`);
         const playableUrl =
           resUrl.data.video_url?.replace("/watch", "/iframe") || "";
         setVideoInfo({ ...resUrl.data, video_url: playableUrl });
 
-        // 2. 전체 목록 가져오기 (재생 목록 구성을 위해)
+        // 2. 전체 목록
         const resList = await apiClient.get("/api/video/list");
         setAllVideos(resList.data);
+
+        // 3. 첫 번째 퀴즈 가져오기
+        await fetchRandomQuiz();
       } catch (e) {
         console.error("데이터 로딩 실패:", e);
       } finally {
@@ -93,6 +121,14 @@ export default function AiVideoWatch() {
     loadData();
   }, [id]);
 
+  const handleQuizSelect = (index) => {
+    if (showSolution) return;
+    const correct = index === quizData.correct_index;
+    setSelectedIndex(index);
+    setIsCorrect(correct);
+    setShowSolution(true);
+  };
+
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
@@ -101,41 +137,54 @@ export default function AiVideoWatch() {
     );
 
   return (
-    <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
-      {/* 좌측: 플레이어 영역 */}
-      <div className="flex-1">
-        <button
-          onClick={() => navigate("/user/videos")}
-          className="mb-6 text-[#0047a5] font-bold flex items-center gap-1"
-        >
-          <MoveLeft size={20} /> 돌아가기
-        </button>
-        <h2 className="text-2xl font-bold mb-4">{videoInfo?.title}</h2>
-        <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
-          {videoInfo?.video_url ? (
-            <iframe
-              src={videoInfo.video_url}
-              className="w-full h-full"
-              allowFullScreen
-            ></iframe>
-          ) : (
-            <div className="h-full flex items-center justify-center text-white">
-              영상이 없습니다.
-            </div>
-          )}
+    <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto flex flex-col gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* 좌측: 플레이어 영역 */}
+        <div className="flex-1">
+          <button
+            onClick={() => navigate("/user/videos")}
+            className="mb-6 text-[#0047a5] font-bold flex items-center gap-1"
+          >
+            <MoveLeft size={20} /> 돌아가기
+          </button>
+          <h2 className="text-2xl font-bold mb-4">{videoInfo?.title}</h2>
+          <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-2xl mb-8">
+            {videoInfo?.video_url ? (
+              <iframe
+                src={videoInfo.video_url}
+                className="w-full h-full"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <div className="h-full flex items-center justify-center text-white">
+                영상 준비 중
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* 우측: 재생 목록 */}
+        <aside className="w-full lg:w-80">
+          <SidebarPlaylist
+            currentId={id}
+            currentSubject={videoInfo?.subject}
+            allVideos={allVideos}
+            onMove={(targetId) => navigate(`/user/videos/${targetId}`)}
+          />
+        </aside>
       </div>
 
-      {/* 우측: 통합된 재생 목록 사이드바 */}
-      <aside className="w-full lg:w-80">
-        <SidebarPlaylist
-          currentId={id}
-          currentSubject={videoInfo?.subject}
-          allVideos={allVideos}
-          onMove={(targetId) => navigate(`/user/videos/${targetId}`)}
+      {/* 💡 [수정] 퀴즈 카드 영역 - Props 전달 필수! */}
+      <section className="max-w-4xl mx-auto w-full">
+        <ApiQuizCard
+          quizData={quizData}
+          selectedIndex={selectedIndex}
+          isCorrect={isCorrect}
+          showSolution={showSolution}
+          onSelect={handleQuizSelect}
+          onNext={fetchRandomQuiz}
         />
-      </aside>
-      <ApiQuizCard />
+      </section>
     </main>
   );
 }
