@@ -10,24 +10,24 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-// 💡 실제 위젯 컴포넌트들을 여기서 import 하세요.
+// 💡 [필독] 인터랙티브 위젯 컴포넌트를 만들으셨다면 아래 주석을 풀고 경로를 맞추세요.
 // import InteractiveUnitCircle from "./widgets/InteractiveUnitCircle";
 // import OhmsLawWidget from "./widgets/OhmsLawWidget";
 
 // ==========================================
-// 1. 위젯 매핑 설정 (DB의 widget_type과 연결)
+// 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
 // ==========================================
 const WIDGET_MAP = {
-  trig_circle: null, // 예: InteractiveUnitCircle (위의 주석 해제 후 연결)
+  trig_circle: null, // 예: InteractiveUnitCircle
   ohms_law: null, // 예: OhmsLawWidget
 };
 
 const getCategory = (lecture) => {
-  if (lecture.subject?.includes("수학")) return "기초 수학";
-  if (lecture.subject?.includes("회로")) return "회로이론";
-  if (lecture.subject?.includes("전자기")) return "전자기학";
-  if (lecture.subject?.includes("AI") || lecture.subject?.includes("Vision"))
-    return "Vision";
+  const sub = lecture.subject || "";
+  if (sub.includes("수학")) return "기초 수학";
+  if (sub.includes("회로")) return "회로이론";
+  if (sub.includes("전자기")) return "전자기학";
+  if (sub.includes("AI") || sub.includes("Vision")) return "Vision";
   return "전체";
 };
 
@@ -93,9 +93,11 @@ const HeroBanner = ({ currentCategoryData, total }) => (
 );
 
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
+  // 썸네일이 없을 경우 보여줄 기본 이미지
   const finalThumbnail =
     video.thumbnail ||
-    "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image";
+    "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
+
   return (
     <article
       className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100"
@@ -132,7 +134,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
               e.stopPropagation();
               onOpenModal(video);
             }}
-            className="text-[#0047a5] font-bold text-lg hover:underline underline-offset-4"
+            className="text-[#0047a5] font-bold text-lg hover:underline underline-offset-4 decoration-2"
           >
             상세보기
           </button>
@@ -177,6 +179,8 @@ const LockedVideoCard = ({ locked }) => (
 
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
+
+  // widgetType에 맞는 컴포넌트 추출
   const ActiveWidgetComponent = selectedVideo.widgetType
     ? WIDGET_MAP[selectedVideo.widgetType]
     : null;
@@ -206,7 +210,9 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
             <X size={32} />
           </button>
         </div>
+
         <div className="p-8 overflow-y-auto flex-grow flex flex-col xl:flex-row gap-8">
+          {/* 설명 영역 */}
           <div className="flex-1 space-y-8">
             <p className="text-xl text-gray-600 leading-relaxed font-medium">
               {selectedVideo.description}
@@ -231,6 +237,8 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
               </div>
             </div>
           </div>
+
+          {/* 위젯 영역 */}
           {ActiveWidgetComponent && (
             <div className="flex-1 border-t xl:border-t-0 xl:border-l border-gray-100 pt-8 xl:pt-0 xl:pl-8 text-center">
               <div className="mb-4 inline-block bg-blue-100 text-[#0047a5] px-3 py-1 rounded text-sm font-bold uppercase tracking-widest">
@@ -240,6 +248,7 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
             </div>
           )}
         </div>
+
         <div className="p-8 bg-gray-50 shrink-0 rounded-b-2xl border-t border-gray-100">
           <button
             onClick={() => {
@@ -266,13 +275,25 @@ export default function VideoListPage() {
   const [videoList, setVideoList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 백엔드 API 호출
   useEffect(() => {
     const fetchVideos = async () => {
       try {
         const res = await apiClient.get("/api/video/list");
-        setVideoList(res.data);
+
+        // 백엔드 데이터(Neo4j)를 프론트 규격에 매핑
+        const mappedData = res.data.map((v) => ({
+          id: v.id, // Neo4j의 'id' 속성 사용
+          title: v.title || "제목 없음",
+          videoUrl: v.video_url || "",
+          thumbnail: v.thumbnail || "",
+          subject: v.subject || "영상 강의",
+          description: v.description || "강의 설명이 없습니다.",
+          widgetType: v.widget_type || null,
+        }));
+        setVideoList(mappedData);
       } catch (e) {
-        console.error(e);
+        console.error("비디오 리스트 로딩 실패:", e);
       } finally {
         setIsLoading(false);
       }
@@ -280,25 +301,23 @@ export default function VideoListPage() {
     fetchVideos();
   }, []);
 
+  // 탭 필터링 및 카테고리화
   const { activeVideos, lockedVideos } = useMemo(() => {
     let result = videoList.map((v) => ({
       ...v,
-      isLocked: !v.video_url,
-      category: v.subject?.includes("수학")
-        ? "기초 수학"
-        : v.subject?.includes("회로")
-          ? "회로이론"
-          : "전체",
+      category: getCategory(v),
+      isLocked: !v.videoUrl || v.videoUrl === "",
     }));
-    if (activeTab !== "전체")
+
+    if (activeTab !== "전체") {
       result = result.filter((v) => v.category === activeTab);
+    }
+
     return {
       activeVideos: result.filter((v) => !v.isLocked),
       lockedVideos: result.filter((v) => v.isLocked),
     };
   }, [activeTab, videoList]);
-
-  //  const currentList = activeVideos.slice((page - 1) * size, page * size);
 
   const total = activeVideos.length;
   const totalPages = Math.ceil(total / size) || 1;
@@ -319,7 +338,7 @@ export default function VideoListPage() {
         total={total}
       />
 
-      {/* 카테고리 탭 */}
+      {/* 카테고리 탭 컨트롤 */}
       <div className="flex flex-wrap items-center justify-start gap-4 mb-10">
         {CATEGORIES.map((cat) => (
           <button
@@ -328,7 +347,11 @@ export default function VideoListPage() {
               setActiveTab(cat.id);
               moveToList({ page: 1, size });
             }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-sm ${activeTab === cat.id ? "bg-[#0047a5] text-white scale-105" : "bg-[#f3f4f6] text-gray-700 hover:bg-gray-200"}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-sm ${
+              activeTab === cat.id
+                ? "bg-[#0047a5] text-white scale-105"
+                : "bg-[#f3f4f6] text-gray-700 hover:bg-gray-200"
+            }`}
           >
             <span className="text-xl">{cat.icon}</span>
             <span>{cat.label}</span>
@@ -336,7 +359,7 @@ export default function VideoListPage() {
         ))}
       </div>
 
-      {/* 안내 텍스트 및 Manim 프리뷰 */}
+      {/* 상단 안내 정보 및 애니메이션 */}
       <div className="mb-6 flex justify-between items-end">
         <div className="text-gray-500 font-medium">
           총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
@@ -354,17 +377,24 @@ export default function VideoListPage() {
         </div>
       </div>
 
-      {/* 강의 카드 그리드 */}
+      {/* 강의 리스트 그리드 */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
-        {currentList.map((video) => (
-          <ActiveVideoCard
-            key={video.id}
-            video={video}
-            onRead={moveToRead}
-            onOpenModal={setSelectedVideo}
-          />
-        ))}
-        {/* 마지막 페이지에서만 잠긴 강의 노출 */}
+        {currentList.length > 0 ? (
+          currentList.map((video) => (
+            <ActiveVideoCard
+              key={video.id}
+              video={video}
+              onRead={moveToRead}
+              onOpenModal={setSelectedVideo}
+            />
+          ))
+        ) : (
+          <div className="col-span-full text-center py-20 text-gray-500 text-lg font-medium">
+            시청 가능한 강의가 없습니다. 😢
+          </div>
+        )}
+
+        {/* 마지막 페이지에서 잠긴 강의 노출 */}
         {(page === totalPages || currentList.length === 0) &&
           lockedVideos.map((locked) => (
             <LockedVideoCard key={locked.id} locked={locked} />
@@ -377,15 +407,19 @@ export default function VideoListPage() {
           <button
             onClick={() => moveToList({ page: page - 1, size })}
             disabled={page <= 1}
-            className="p-2 disabled:opacity-30"
+            className="p-2 disabled:opacity-30 text-gray-400 hover:text-[#0047a5]"
           >
-            <ChevronLeft />
+            <ChevronLeft size={24} />
           </button>
           {Array.from({ length: totalPages }).map((_, i) => (
             <button
               key={i + 1}
               onClick={() => moveToList({ page: i + 1, size })}
-              className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i + 1 ? "bg-[#0047a5] text-white shadow-md scale-110" : "text-gray-600 hover:bg-gray-100"}`}
+              className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                page === i + 1
+                  ? "bg-[#0047a5] text-white shadow-lg scale-110"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
             >
               {i + 1}
             </button>
@@ -393,14 +427,14 @@ export default function VideoListPage() {
           <button
             onClick={() => moveToList({ page: page + 1, size })}
             disabled={page >= totalPages}
-            className="p-2 disabled:opacity-30"
+            className="p-2 disabled:opacity-30 text-gray-400 hover:text-[#0047a5]"
           >
-            <ChevronRight />
+            <ChevronRight size={24} />
           </button>
         </nav>
       )}
 
-      {/* 상세 모달 (인터랙티브 위젯 포함) */}
+      {/* 상세보기 모달 */}
       <DetailModal
         selectedVideo={selectedVideo}
         onClose={() => setSelectedVideo(null)}
