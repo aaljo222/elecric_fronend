@@ -1,3 +1,4 @@
+import apiClient from "@/api/core/apiClient";
 import WIDGET_MAP from "@/utils/widgetData";
 import { X } from "lucide-react"; // 👈 이 줄을 추가해 주세요!
 import { useEffect, useState } from "react";
