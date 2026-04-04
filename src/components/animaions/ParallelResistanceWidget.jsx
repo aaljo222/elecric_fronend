@@ -3,14 +3,16 @@ import { useMemo, useState } from "react";
 import { BlockMath } from "react-katex";
 
 const ParallelResistanceWidget = () => {
+  // 상태 관리 (초기값: 35V, 저항 10, 20, 30 옴)
   const [resistorCount, setResistorCount] = useState(3);
   const [voltage, setVoltage] = useState(35);
   const [resistances, setResistances] = useState([10, 20, 30, 40]);
-  const [selectedIndex, setSelectedIndex] = useState(null);
 
+  // 계산 및 다단계 LaTeX 수식 생성
   const { totalReq, currents, totalCurrent, latexFormula } = useMemo(() => {
     const activeResistances = resistances.slice(0, resistorCount);
 
+    // 분모 0 방지 및 역수 합 계산
     const calculatedInvReq = activeResistances.reduce((acc, R) => {
       const val = Number(R) <= 0.1 ? 0.1 : Number(R);
       return acc + 1 / val;
@@ -18,6 +20,7 @@ const ParallelResistanceWidget = () => {
 
     const Req = calculatedInvReq > 0 ? 1 / calculatedInvReq : 0;
 
+    // 각 지로 전류 및 전체 전류 계산
     const branchCurrents = activeResistances.map((R) => {
       const val = Number(R) <= 0.1 ? 0.1 : Number(R);
       return voltage / val;
@@ -25,13 +28,24 @@ const ParallelResistanceWidget = () => {
 
     const totalI = Req > 0 ? voltage / Req : 0;
 
+    // 💡 상세한 다단계 수식(LaTeX) 생성
     const symbolicPart = activeResistances
       .map((_, i) => `\\frac{1}{R_{${i + 1}}}`)
       .join(" + ");
     const numericPart = activeResistances
       .map((R) => `\\frac{1}{${R}}`)
       .join(" + ");
-    const formula = `R_{eq} = \\frac{1}{${symbolicPart}} = \\frac{1}{${numericPart}} = ${Req.toFixed(2)} \\, \\Omega`;
+    const intermediateSum = calculatedInvReq.toFixed(4);
+
+    // aligned 환경을 사용하여 줄바꿈과 등호(=) 정렬
+    const formula = `
+      \\begin{aligned}
+      R_{eq} &= \\frac{1}{${symbolicPart}} \\\\
+      &= \\frac{1}{${numericPart}} \\\\
+      &= \\frac{1}{${intermediateSum}} \\\\
+      &= ${Req.toFixed(2)} \\, \\Omega
+      \\end{aligned}
+    `;
 
     return {
       totalReq: Req,
@@ -43,283 +57,304 @@ const ParallelResistanceWidget = () => {
 
   const handleResChange = (idx, value) => {
     const newRes = [...resistances];
-    newRes[idx] = value;
+    newRes[idx] = Number(value);
     setResistances(newRes);
   };
 
   return (
-    <div className="w-full bg-white rounded-2xl">
-      {/* 타이틀 영역 */}
-      <h5 className="text-xl font-black text-gray-800 mb-6 flex items-center gap-2 border-b pb-4">
+    <div className="w-full bg-white rounded-2xl p-2">
+      <h5 className="text-xl font-black text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
         <span className="bg-yellow-400 p-1.5 rounded-lg text-white">⚡</span>{" "}
-        병렬 회로 실시간 분석기
+        병렬 회로 인터랙티브 실습
       </h5>
 
-      {/* 💡 2단 분할 레이아웃 적용 */}
-      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch">
         {/* ========================================= */}
-        {/* 왼쪽 영역: 회로 시각화 (회로도) */}
+        {/* 왼쪽 영역: 회로 시각화 (전류 화살표 강화) */}
         {/* ========================================= */}
-        <div className="flex-[4] flex flex-col bg-slate-50 rounded-2xl border border-gray-200 shadow-inner relative p-4 min-h-[350px]">
-          <p className="text-xs font-bold text-gray-500 uppercase text-center mb-2 tracking-widest">
-            Circuit Diagram
-          </p>
-          <div className="flex-1 flex justify-center items-center w-full h-full relative">
-            <svg
-              viewBox="0 0 400 250"
-              className="w-full max-w-md h-auto overflow-visible drop-shadow-md"
-            >
-              <g transform="translate(40, 100)">
-                <line
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="40"
-                  stroke="#0047a5"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="-15"
-                  y1="40"
-                  x2="15"
-                  y2="40"
-                  stroke="#0047a5"
-                  strokeWidth="4"
-                />
-                <line
-                  x1="-8"
-                  y1="50"
-                  x2="8"
-                  y2="50"
-                  stroke="#0047a5"
-                  strokeWidth="2"
-                />
-                <line
-                  x1="0"
-                  y1="50"
-                  x2="0"
-                  y2="90"
-                  stroke="#0047a5"
-                  strokeWidth="2"
-                />
-                <text
-                  x="25"
-                  y="55"
-                  className="text-base font-black text-[#0047a5]"
-                >
-                  {voltage} V
-                </text>
-              </g>
-
+        <div className="flex-[5] flex flex-col bg-[#f8fafc] rounded-2xl border border-gray-200 shadow-inner relative p-6 min-h-[400px] justify-center items-center">
+          <svg
+            viewBox="-20 0 440 280"
+            className="w-full h-auto max-h-[350px] overflow-visible drop-shadow-sm"
+          >
+            {/* 전압원 */}
+            <g transform="translate(40, 120)">
               <line
-                x1="40"
-                y1="100"
-                x2="40"
-                y2="50"
-                stroke="#94a3b8"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#0047a5"
                 strokeWidth="2"
               />
               <line
-                x1="40"
+                x1="-15"
+                y1="40"
+                x2="15"
+                y2="40"
+                stroke="#0047a5"
+                strokeWidth="4"
+              />
+              <line
+                x1="-8"
                 y1="50"
-                x2="350"
+                x2="8"
                 y2="50"
-                stroke="#94a3b8"
+                stroke="#0047a5"
                 strokeWidth="2"
               />
               <line
-                x1="40"
-                y1="190"
-                x2="40"
-                y2="240"
-                stroke="#94a3b8"
-                strokeWidth="2"
-              />
-              <line
-                x1="40"
-                y1="240"
-                x2="350"
-                y2="240"
-                stroke="#94a3b8"
-                strokeWidth="2"
-              />
-
-              {resistances.slice(0, resistorCount).map((R, idx) => {
-                const xPos = 120 + idx * 70;
-                return (
-                  <g key={idx} transform={`translate(${xPos}, 50)`}>
-                    <line
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="60"
-                      stroke="#cbd5e1"
-                      strokeWidth="2"
-                    />
-                    <line
-                      x1="0"
-                      y1="130"
-                      x2="0"
-                      y2="190"
-                      stroke="#cbd5e1"
-                      strokeWidth="2"
-                    />
-                    <polyline
-                      points="0,60 10,65 -10,75 10,85 -10,95 10,105 -10,115 10,125 0,130"
-                      fill="none"
-                      stroke={selectedIndex === idx ? "#0047a5" : "#64748b"}
-                      strokeWidth="3"
-                      className="cursor-pointer hover:stroke-blue-500 transition-colors"
-                      onClick={() => setSelectedIndex(idx)}
-                    />
-                    <text
-                      x="15"
-                      y="40"
-                      className="text-[11px] font-bold text-emerald-600"
-                    >
-                      I{idx + 1}: {currents[idx]?.toFixed(2)}A
-                    </text>
-                    <path d="M5 25 L5 35 L10 30 Z" fill="#10b981" />
-                    <text
-                      x="15"
-                      y="100"
-                      className="text-[12px] font-black text-gray-700"
-                    >
-                      {R}Ω
-                    </text>
-                  </g>
-                );
-              })}
-
-              <line
-                x1="350"
+                x1="0"
                 y1="50"
-                x2="350"
-                y2="240"
-                stroke="#94a3b8"
+                x2="0"
+                y2="90"
+                stroke="#0047a5"
                 strokeWidth="2"
               />
-
-              <g transform="translate(180, 20)">
-                <rect
-                  x="0"
-                  y="0"
-                  width="130"
-                  height="25"
-                  rx="5"
-                  fill="#f8fafc"
-                  stroke="#e2e8f0"
-                />
-                <text
-                  x="10"
-                  y="17"
-                  className="text-[11px] font-bold text-gray-500"
-                >
-                  Itotal:{" "}
-                  <tspan className="text-sm font-black text-yellow-600">
-                    {totalCurrent.toFixed(2)}A
-                  </tspan>
-                </text>
-              </g>
-            </svg>
-          </div>
-
-          {/* 저항 팝업 조절기 (SVG 내부에 위치) */}
-          {selectedIndex !== null && selectedIndex < resistorCount && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/95 p-5 rounded-2xl border border-blue-300 shadow-2xl backdrop-blur-sm z-10 w-56 text-center animate-fade-in">
-              <p className="text-sm font-bold text-[#0047a5] mb-2">
-                R{selectedIndex + 1} 저항값 설정
-              </p>
-              <p className="text-4xl font-black text-gray-900 mb-4">
-                {resistances[selectedIndex]}{" "}
-                <span className="text-lg opacity-50">Ω</span>
-              </p>
-              <input
-                type="range"
-                min="1"
-                max="100"
-                value={resistances[selectedIndex]}
-                onChange={(e) => handleResChange(selectedIndex, e.target.value)}
-                className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-[#0047a5]"
-              />
-              <button
-                onClick={() => setSelectedIndex(null)}
-                className="absolute top-2 right-3 text-gray-400 hover:text-red-500 text-lg"
+              <text
+                x="-40"
+                y="55"
+                className="text-lg font-black text-[#0047a5]"
               >
-                ✕
-              </button>
-            </div>
-          )}
+                {voltage} V
+              </text>
+            </g>
+
+            {/* 메인 회로선 */}
+            <line
+              x1="40"
+              y1="120"
+              x2="40"
+              y2="40"
+              stroke="#94a3b8"
+              strokeWidth="2.5"
+            />
+            <line
+              x1="40"
+              y1="40"
+              x2="350"
+              y2="40"
+              stroke="#94a3b8"
+              strokeWidth="2.5"
+            />
+            <line
+              x1="40"
+              y1="210"
+              x2="40"
+              y2="250"
+              stroke="#94a3b8"
+              strokeWidth="2.5"
+            />
+            <line
+              x1="40"
+              y1="250"
+              x2="350"
+              y2="250"
+              stroke="#94a3b8"
+              strokeWidth="2.5"
+            />
+
+            {/* 💡 전체 전류 화살표 */}
+            <g transform="translate(80, 40)">
+              <line
+                x1="-10"
+                y1="0"
+                x2="15"
+                y2="0"
+                stroke="#eab308"
+                strokeWidth="3"
+              />
+              <polygon points="15,-5 25,0 15,5" fill="#eab308" />
+            </g>
+
+            {/* 병렬 지로 및 저항 */}
+            {resistances.slice(0, resistorCount).map((R, idx) => {
+              const xPos = 130 + idx * 80;
+              // 화살표 크기를 전류량에 비례하게 약간 조정 (시각적 효과)
+              const currentRatio = Math.min(
+                Math.max(currents[idx] / 2, 0.6),
+                1.5,
+              );
+
+              return (
+                <g key={idx} transform={`translate(${xPos}, 40)`}>
+                  {/* 세로선 */}
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="70"
+                    stroke="#cbd5e1"
+                    strokeWidth="2.5"
+                  />
+                  <line
+                    x1="0"
+                    y1="140"
+                    x2="0"
+                    y2="210"
+                    stroke="#cbd5e1"
+                    strokeWidth="2.5"
+                  />
+
+                  {/* 💡 개별 지로 전류 화살표 (명확한 표시) */}
+                  <g transform={`translate(0, 20) scale(${currentRatio})`}>
+                    <line
+                      x1="0"
+                      y1="-10"
+                      x2="0"
+                      y2="10"
+                      stroke="#10b981"
+                      strokeWidth="3"
+                    />
+                    <polygon points="-6,10 6,10 0,20" fill="#10b981" />
+                  </g>
+
+                  {/* 전류 텍스트 */}
+                  <text
+                    x="12"
+                    y="30"
+                    className="text-[12px] font-bold text-emerald-600"
+                  >
+                    I{idx + 1}: {currents[idx]?.toFixed(2)}A
+                  </text>
+
+                  {/* 저항 기호 */}
+                  <polyline
+                    points="0,70 12,75 -12,85 12,95 -12,105 12,115 -12,125 12,135 0,140"
+                    fill="none"
+                    stroke="#475569"
+                    strokeWidth="3.5"
+                  />
+                  {/* 저항 값 텍스트 */}
+                  <text
+                    x="18"
+                    y="110"
+                    className="text-[14px] font-black text-gray-800"
+                  >
+                    {R}Ω
+                  </text>
+                </g>
+              );
+            })}
+
+            <line
+              x1="350"
+              y1="40"
+              x2="350"
+              y2="250"
+              stroke="#94a3b8"
+              strokeWidth="2.5"
+            />
+
+            {/* 총 전류 라벨 */}
+            <g transform="translate(140, 5)">
+              <rect
+                x="0"
+                y="0"
+                width="160"
+                height="28"
+                rx="6"
+                fill="#ffffff"
+                stroke="#e2e8f0"
+                strokeWidth="2"
+              />
+              <text
+                x="15"
+                y="19"
+                className="text-[12px] font-bold text-gray-600"
+              >
+                Total Current:{" "}
+                <tspan className="text-[14px] font-black text-yellow-600">
+                  {totalCurrent.toFixed(2)}A
+                </tspan>
+              </text>
+            </g>
+          </svg>
         </div>
 
         {/* ========================================= */}
-        {/* 오른쪽 영역: 컨트롤 및 수식, 결과 리포트 */}
+        {/* 오른쪽 영역: 조작부 & 수식 풀이 과정 */}
         {/* ========================================= */}
-        <div className="flex-[3] flex flex-col justify-between gap-4">
-          {/* 컨트롤 (저항 개수 / 전압) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-3">
-                저항 개수
-              </label>
-              <div className="flex gap-2">
-                {[2, 3, 4].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => {
-                      setResistorCount(num);
-                      if (selectedIndex >= num) setSelectedIndex(null);
-                    }}
-                    className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all shadow-sm ${
-                      resistorCount === num
-                        ? "bg-[#0047a5] text-white"
-                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
-                    }`}
-                  >
-                    {num}개
-                  </button>
-                ))}
+        <div className="flex-[4] flex flex-col gap-4">
+          {/* 1. 상단: 직관적인 컨트롤러 */}
+          <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase block mb-2">
+                  저항 개수
+                </label>
+                <div className="flex gap-2">
+                  {[2, 3, 4].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setResistorCount(num)}
+                      className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all border ${
+                        resistorCount === num
+                          ? "bg-[#0047a5] text-white border-[#0047a5]"
+                          : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
+                      }`}
+                    >
+                      {num}개
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-3">
-                전압원 설정 (V)
-              </label>
-              <div className="flex items-center gap-3">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase block mb-2 flex justify-between">
+                  전압 (V){" "}
+                  <span className="text-[#0047a5] font-black">{voltage}V</span>
+                </label>
                 <input
                   type="range"
-                  min="1"
+                  min="10"
                   max="100"
                   value={voltage}
                   onChange={(e) => setVoltage(e.target.value)}
-                  className="flex-1 h-2 accent-[#0047a5]"
+                  className="w-full h-2 accent-[#0047a5]"
                 />
-                <span className="w-10 text-center font-black text-[#0047a5] text-lg">
-                  {voltage}
-                </span>
               </div>
+            </div>
+
+            {/* 개별 저항 조절 슬라이더를 바로 노출 */}
+            <div className="space-y-3 pt-2 border-t border-gray-200">
+              {resistances.slice(0, resistorCount).map((R, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <span className="w-8 font-bold text-sm text-gray-600">
+                    R{idx + 1}
+                  </span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={R}
+                    onChange={(e) => handleResChange(idx, e.target.value)}
+                    className="flex-1 h-1.5 accent-gray-500"
+                  />
+                  <span className="w-12 text-right font-black text-gray-800">
+                    {R}Ω
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* 수식 표시 영역 */}
-          <div className="bg-blue-50/50 border border-blue-200 p-5 rounded-xl shadow-sm flex-1 flex flex-col justify-center">
+          {/* 2. 중단: 다단계 수식 풀이 과정 (가시성 극대화) */}
+          <div className="bg-[#f0f4ff] border border-blue-200 p-5 rounded-2xl shadow-sm flex-1 flex flex-col justify-center">
             <p className="text-sm font-bold text-[#0047a5] mb-4 flex items-center gap-2 border-b border-blue-200 pb-2">
-              <span className="material-symbols-outlined text-base">
-                calculate
-              </span>
-              실시간 합성저항 계산 과정
+              <span className="material-symbols-outlined">calculate</span>
+              합성저항 상세 계산 과정
             </p>
-            <div className="text-gray-900 pointer-events-none overflow-x-auto py-2">
+            <div className="text-gray-900 pointer-events-none overflow-x-auto py-2 text-lg">
+              {/* \begin{aligned} 를 사용한 깔끔한 세로 정렬 */}
               <BlockMath math={latexFormula} />
             </div>
           </div>
 
-          {/* 최종 결과값 */}
-          <div className="bg-[#0047a5] p-5 rounded-xl text-white shadow-lg grid grid-cols-2 gap-4 mt-2">
+          {/* 3. 하단: 최종 요약 리포트 */}
+          <div className="bg-[#0047a5] p-5 rounded-2xl text-white shadow-md grid grid-cols-2 gap-4">
             <div className="text-center border-r border-white/20 pr-2">
-              <p className="text-[11px] font-bold opacity-80 uppercase mb-2">
-                합성저항 (Req)
+              <p className="text-[12px] font-bold opacity-80 uppercase mb-1">
+                최종 합성저항 ($R_{eq}$)
               </p>
               <span className="text-3xl font-black">
                 {totalReq.toFixed(2)}{" "}
@@ -327,8 +362,8 @@ const ParallelResistanceWidget = () => {
               </span>
             </div>
             <div className="text-center pl-2">
-              <p className="text-[11px] font-bold opacity-80 uppercase mb-2">
-                전체 전류 (Itotal)
+              <p className="text-[12px] font-bold opacity-80 uppercase mb-1">
+                회로 전체 전류 ($I_{total}$)
               </p>
               <span className="text-3xl font-black text-yellow-300">
                 {totalCurrent.toFixed(2)}{" "}
