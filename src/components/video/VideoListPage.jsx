@@ -14,10 +14,10 @@ import { useEffect, useMemo, useState } from "react";
 // import OhmsLawWidget from "./widgets/OhmsLawWidget";
 
 // ==========================================
-// 1. 위젯 매핑 설정
+// 1. 위젯 매핑 설정 (DB의 widget_type과 연결)
 // ==========================================
 const WIDGET_MAP = {
-  trig_circle: null, // 예: InteractiveUnitCircle
+  trig_circle: null, // 예: InteractiveUnitCircle (위의 주석 해제 후 연결)
   ohms_law: null, // 예: OhmsLawWidget
 };
 
@@ -67,7 +67,7 @@ const CATEGORIES = [
 ];
 
 // ==========================================
-// 2. 하위 컴포넌트들
+// 2. 하위 컴포넌트들 (카드, 모달, 배너)
 // ==========================================
 
 const HeroBanner = ({ currentCategoryData, total }) => (
@@ -95,7 +95,6 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
   const finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image";
-
   return (
     <article
       className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100"
@@ -132,7 +131,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
               e.stopPropagation();
               onOpenModal(video);
             }}
-            className="text-[#0047a5] font-bold text-lg hover:underline underline-offset-4 decoration-2"
+            className="text-[#0047a5] font-bold text-lg hover:underline underline-offset-4"
           >
             상세보기
           </button>
@@ -177,7 +176,6 @@ const LockedVideoCard = ({ locked }) => (
 
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
-
   const ActiveWidgetComponent = selectedVideo.widgetType
     ? WIDGET_MAP[selectedVideo.widgetType]
     : null;
@@ -207,7 +205,6 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
             <X size={32} />
           </button>
         </div>
-
         <div className="p-8 overflow-y-auto flex-grow flex flex-col xl:flex-row gap-8">
           <div className="flex-1 space-y-8">
             <p className="text-xl text-gray-600 leading-relaxed font-medium">
@@ -233,9 +230,8 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
               </div>
             </div>
           </div>
-
           {ActiveWidgetComponent && (
-            <div className="flex-1 border-t xl:border-t-0 xl:border-l border-gray-100 pt-8 xl:pt-0 xl:pl-8">
+            <div className="flex-1 border-t xl:border-t-0 xl:border-l border-gray-100 pt-8 xl:pt-0 xl:pl-8 text-center">
               <div className="mb-4 inline-block bg-blue-100 text-[#0047a5] px-3 py-1 rounded text-sm font-bold uppercase tracking-widest">
                 인터랙티브 실습
               </div>
@@ -243,7 +239,6 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
             </div>
           )}
         </div>
-
         <div className="p-8 bg-gray-50 shrink-0 rounded-b-2xl border-t border-gray-100">
           <button
             onClick={() => {
@@ -270,6 +265,7 @@ export default function VideoListPage() {
   const [videoList, setVideoList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 백엔드 API 호출 및 데이터 매핑
   useEffect(() => {
     const fetchVideos = async () => {
       try {
@@ -278,7 +274,7 @@ export default function VideoListPage() {
         const data = await response.json();
 
         const mappedData = data.map((v) => ({
-          id: v.id,
+          id: v.id, // 파이썬 백엔드에서 l.lecture_id AS id 로 보내줘야 함
           title: v.title || "제목 없음",
           videoUrl: v.video_url || "",
           subject: v.subject || "영상 강의",
@@ -287,7 +283,7 @@ export default function VideoListPage() {
         }));
         setVideoList(mappedData);
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error fetching video list:", error);
       } finally {
         setIsLoading(false);
       }
@@ -295,6 +291,7 @@ export default function VideoListPage() {
     fetchVideos();
   }, []);
 
+  // 탭 필터링 및 활성/잠금 강의 구분
   const { activeVideos, lockedVideos } = useMemo(() => {
     let result = videoList.map((v) => ({
       ...v,
@@ -302,7 +299,7 @@ export default function VideoListPage() {
       isLocked: !v.videoUrl || v.videoUrl === "",
     }));
     if (activeTab !== "전체")
-      result = result.filter((video) => video.category === activeTab);
+      result = result.filter((v) => v.category === activeTab);
     return {
       activeVideos: result.filter((v) => !v.isLocked),
       lockedVideos: result.filter((v) => v.isLocked),
@@ -328,6 +325,7 @@ export default function VideoListPage() {
         total={total}
       />
 
+      {/* 카테고리 탭 */}
       <div className="flex flex-wrap items-center justify-start gap-4 mb-10">
         {CATEGORIES.map((cat) => (
           <button
@@ -344,6 +342,7 @@ export default function VideoListPage() {
         ))}
       </div>
 
+      {/* 안내 텍스트 및 Manim 프리뷰 */}
       <div className="mb-6 flex justify-between items-end">
         <div className="text-gray-500 font-medium">
           총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
@@ -361,6 +360,7 @@ export default function VideoListPage() {
         </div>
       </div>
 
+      {/* 강의 카드 그리드 */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
         {currentList.map((video) => (
           <ActiveVideoCard
@@ -370,12 +370,14 @@ export default function VideoListPage() {
             onOpenModal={setSelectedVideo}
           />
         ))}
-        {page === totalPages &&
+        {/* 마지막 페이지에서만 잠긴 강의 노출 */}
+        {(page === totalPages || currentList.length === 0) &&
           lockedVideos.map((locked) => (
             <LockedVideoCard key={locked.id} locked={locked} />
           ))}
       </section>
 
+      {/* 페이지네이션 */}
       {total > 0 && (
         <nav className="flex justify-center items-center gap-2">
           <button
@@ -389,7 +391,7 @@ export default function VideoListPage() {
             <button
               key={i + 1}
               onClick={() => moveToList({ page: i + 1, size })}
-              className={`w-10 h-10 rounded-xl font-bold ${page === i + 1 ? "bg-[#0047a5] text-white" : "text-gray-600"}`}
+              className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i + 1 ? "bg-[#0047a5] text-white shadow-md scale-110" : "text-gray-600 hover:bg-gray-100"}`}
             >
               {i + 1}
             </button>
@@ -404,6 +406,7 @@ export default function VideoListPage() {
         </nav>
       )}
 
+      {/* 상세 모달 (인터랙티브 위젯 포함) */}
       <DetailModal
         selectedVideo={selectedVideo}
         onClose={() => setSelectedVideo(null)}
