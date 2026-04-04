@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
 
 // 💡 [필독] 인터랙티브 위젯 컴포넌트를 만들으셨다면 아래 주석을 풀고 경로를 맞추세요.
 // import InteractiveUnitCircle from "./widgets/InteractiveUnitCircle";
@@ -18,7 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 // 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
 // ==========================================
 const WIDGET_MAP = {
-  trig_circle: null, // 예: InteractiveUnitCircle
+  trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
   ohms_law: null, // 예: OhmsLawWidget
 };
 

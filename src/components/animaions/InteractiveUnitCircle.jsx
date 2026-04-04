@@ -1,141 +1,154 @@
-import p5 from "p5";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
-export default function InteractiveUnitCircle() {
-  // p5 캔버스가 삽입될 DOM 영역
-  const sketchRef = useRef(null);
+const InteractiveUnitCircle = () => {
+  const [angle, setAngle] = useState(30); // 기본 각도 30도
 
-  // UI에 표시할 React 상태
-  const [angle, setAngle] = useState(30);
+  // 수학 계산 (라디안 변환)
+  const rad = (angle * Math.PI) / 180;
+  const cosValue = Math.cos(rad);
+  const sinValue = Math.sin(rad);
 
-  // p5의 draw 루프 내부에서 최신 상태를 끊김 없이 읽기 위한 Ref
-  const angleRef = useRef(30);
+  // SVG 좌표 설정 (중심 150, 150 / 반지름 100)
+  const centerX = 150;
+  const centerY = 150;
+  const radius = 100;
 
-  // 슬라이더 조작 시 실행되는 함수
-  const handleAngleChange = (e) => {
-    const newAngle = Number(e.target.value);
-    setAngle(newAngle);
-    angleRef.current = newAngle; // p5가 참조하는 값도 동기화
-  };
-
-  useEffect(() => {
-    // p5 인스턴스 모드 스케치 정의
-    const sketch = (p) => {
-      const R = 120; // 캔버스 내 단위 원의 반지름 크기(픽셀)
-
-      p.setup = () => {
-        // 400x400 크기의 캔버스 생성
-        p.createCanvas(400, 400);
-        p.angleMode(p.DEGREES); // 라디안 대신 익숙한 '도(Degree)' 사용
-      };
-
-      // 1초에 약 60번씩 반복 실행되며 화면을 그리는 함수
-      p.draw = () => {
-        p.background(255); // 배경 흰색으로 초기화
-        p.translate(p.width / 2, p.height / 2); // 캔버스 중앙을 (0,0) 원점으로 설정
-
-        // 1. x, y 좌표축 (십자가) 그리기
-        p.stroke(220);
-        p.strokeWeight(1);
-        p.line(-p.width / 2, 0, p.width / 2, 0); // x축
-        p.line(0, -p.height / 2, 0, p.height / 2); // y축
-
-        // 2. 배경 단위 원 그리기
-        p.noFill();
-        p.stroke(200);
-        p.strokeWeight(2);
-        p.circle(0, 0, R * 2);
-
-        // React의 최신 각도 값 가져오기
-        const currentAngle = angleRef.current;
-
-        // 3. 점 P(x, y) 좌표 계산
-        // 주의: 웹 캔버스는 y축이 아래로 갈수록 +이므로 sin 값에 -를 붙여줍니다.
-        const x = R * p.cos(currentAngle);
-        const y = -R * p.sin(currentAngle);
-
-        // 4. 삼각함수 시각화 선 그리기
-        // 빗변 (검은색 계열)
-        p.stroke(100);
-        p.strokeWeight(2);
-        p.line(0, 0, x, y);
-
-        // 밑변 (코사인 - 파란색)
-        p.stroke("#3b82f6"); // Tailwind blue-500
-        p.strokeWeight(4);
-        p.line(0, 0, x, 0);
-
-        // 높이 (사인 - 빨간색)
-        p.stroke("#ef4444"); // Tailwind red-500
-        p.strokeWeight(4);
-        p.line(x, 0, x, y);
-
-        // 5. 점 P 렌더링
-        p.fill("#0047a5"); // 메인 테마 색상
-        p.noStroke();
-        p.circle(x, y, 12);
-      };
-    };
-
-    // p5 객체 생성 및 DOM에 부착
-    const myP5 = new p5(sketch, sketchRef.current);
-
-    // 컴포넌트가 화면에서 사라질 때 캔버스를 메모리에서 깔끔하게 삭제
-    return () => {
-      myP5.remove();
-    };
-  }, []); // 빈 배열: 컴포넌트 마운트 시 1번만 실행됨
+  const targetX = centerX + radius * cosValue;
+  const targetY = centerY - radius * sinValue; // SVG는 Y축이 아래로 갈수록 커짐
 
   return (
-    <div className="flex flex-col items-center bg-gray-50 p-8 rounded-2xl shadow-sm border border-gray-200 w-full max-w-lg mx-auto">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6 font-headline tracking-tight">
-        인터랙티브 삼각함수 탐험
-      </h3>
+    <div className="flex flex-col items-center bg-white p-6 rounded-2xl border border-blue-50 shadow-inner">
+      <h5 className="text-lg font-bold text-gray-800 mb-4">
+        단위원을 활용한 삼각비 이해
+      </h5>
 
-      {/* p5.js 캔버스가 렌더링될 DOM 컨테이너 */}
-      <div
-        ref={sketchRef}
-        className="rounded-xl overflow-hidden border-2 border-white shadow-md mb-8 bg-white"
-      />
+      {/* 시각화 영역 (SVG) */}
+      <svg
+        width="300"
+        height="300"
+        className="bg-slate-50 rounded-xl mb-6 overflow-visible"
+      >
+        {/* X, Y 축 */}
+        <line
+          x1="20"
+          y1="150"
+          x2="280"
+          y2="150"
+          stroke="#cbd5e1"
+          strokeWidth="1"
+        />
+        <line
+          x1="150"
+          y1="20"
+          x2="150"
+          y2="280"
+          stroke="#cbd5e1"
+          strokeWidth="1"
+        />
 
-      {/* 사용자가 직접 조작하는 컨트롤 패널 */}
-      <div className="w-full px-2">
-        <div className="flex justify-between items-center mb-4 font-medium text-gray-700">
-          <span className="text-lg">각도 (θ) 조절</span>
-          <span className="text-[#0047a5] font-extrabold text-xl">
-            {angle}°
-          </span>
+        {/* 단위 원 */}
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={radius}
+          fill="none"
+          stroke="#94a3b8"
+          strokeWidth="2"
+          strokeDasharray="4 2"
+        />
+
+        {/* 빗변 (Radius) */}
+        <line
+          x1={centerX}
+          y1={centerY}
+          x2={targetX}
+          y2={targetY}
+          stroke="#0047a5"
+          strokeWidth="3"
+        />
+
+        {/* 밑변 (Cos - 가로축) */}
+        <line
+          x1={centerX}
+          y1={centerY}
+          x2={targetX}
+          y2={centerY}
+          stroke="#ef4444"
+          strokeWidth="3"
+        />
+
+        {/* 높이 (Sin - 세로축) */}
+        <line
+          x1={targetX}
+          y1={centerY}
+          x2={targetX}
+          y2={targetY}
+          stroke="#10b981"
+          strokeWidth="3"
+        />
+
+        {/* 움직이는 점 */}
+        <circle cx={targetX} cy={targetY} r="5" fill="#0047a5" />
+
+        {/* 텍스트 라벨 */}
+        <text
+          x={centerX + (radius * cosValue) / 2}
+          y={centerY + 20}
+          textAnchor="middle"
+          fill="#ef4444"
+          fontSize="12"
+          fontWeight="bold"
+        >
+          cos
+        </text>
+        <text
+          x={targetX + 10}
+          y={centerY - (radius * sinValue) / 2}
+          fill="#10b981"
+          fontSize="12"
+          fontWeight="bold"
+        >
+          sin
+        </text>
+      </svg>
+
+      {/* 값 출력 영역 */}
+      <div className="grid grid-cols-2 gap-4 w-full mb-6">
+        <div className="bg-red-50 p-3 rounded-xl border border-red-100 text-center">
+          <p className="text-xs text-red-600 font-bold mb-1">
+            $\cos({angle}^\circ)$
+          </p>
+          <p className="text-xl font-black text-red-700">
+            {cosValue.toFixed(4)}
+          </p>
         </div>
+        <div className="bg-green-50 p-3 rounded-xl border border-green-100 text-center">
+          <p className="text-xs text-green-600 font-bold mb-1">
+            $\sin({angle}^\circ)$
+          </p>
+          <p className="text-xl font-black text-green-700">
+            {sinValue.toFixed(4)}
+          </p>
+        </div>
+      </div>
 
+      {/* 컨트롤 영역 (슬라이더) */}
+      <div className="w-full space-y-2">
+        <div className="flex justify-between items-center px-1">
+          <span className="text-sm font-bold text-gray-500">각도 조절</span>
+          <span className="text-lg font-black text-[#0047a5]">{angle}°</span>
+        </div>
         <input
           type="range"
           min="0"
           max="360"
           value={angle}
-          onChange={handleAngleChange}
-          className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#0047a5] hover:accent-blue-800 transition-colors"
+          onChange={(e) => setAngle(Number(e.target.value))}
+          className="w-full h-3 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-[#0047a5]"
         />
-
-        {/* 하단 실시간 결과값 표시 영역 */}
-        <div className="flex justify-between mt-8 text-xl font-bold bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex flex-col items-center w-1/2 border-r border-gray-100">
-            <span className="text-sm text-gray-400 mb-1 uppercase tracking-widest">
-              높이
-            </span>
-            <span className="text-red-500">
-              sin({angle}°) = {Math.sin((angle * Math.PI) / 180).toFixed(2)}
-            </span>
-          </div>
-          <div className="flex flex-col items-center w-1/2">
-            <span className="text-sm text-gray-400 mb-1 uppercase tracking-widest">
-              밑변
-            </span>
-            <span className="text-blue-500">
-              cos({angle}°) = {Math.cos((angle * Math.PI) / 180).toFixed(2)}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );
-}
+};
+
+export default InteractiveUnitCircle;
