@@ -1,4 +1,5 @@
 import apiClient from "@/api/core/apiClient";
+import ApiQuizCard from "@/components/quiz/ApiQuizCard";
 import { Loader2, Lock, MoveLeft, PlayCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -134,6 +135,7 @@ export default function AiVideoWatch() {
           onMove={(targetId) => navigate(`/user/videos/${targetId}`)}
         />
       </aside>
+      <ApiQuizCard />
     </main>
   );
 }
