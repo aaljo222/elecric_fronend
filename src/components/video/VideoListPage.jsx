@@ -96,7 +96,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
   const finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
-  console.log("active video", video);
+
   return (
     <article
       className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100"
@@ -114,17 +114,16 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
           {video.category || "STEP"}
         </div>
 
-        {/* 💡 2. 오른쪽 상단: 인터랙티브 위젯 버튼 (수정된 부분) ⭐ */}
+        {/* 💡 2. 오른쪽 상단: 인터랙티브 위젯 버튼 (이 부분이 빠져있었습니다!) ⭐ */}
         {video.widgetType && (
           <button
             onClick={(e) => {
-              e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
-              onOpenModal(video); // 위젯이 포함된 모달 열기
+              e.stopPropagation(); // 카드 전체 클릭(영상 이동) 방지
+              onOpenModal(video); // 위젯 모달 열기
             }}
-            className="absolute top-4 right-4 z-10 bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center justify-center group/widget"
-            title="인터랙티브 실습 가능"
+            className="absolute top-4 right-4 z-10 bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-full shadow-lg transition-all hover:scale-110 flex items-center justify-center group/widget"
+            title="실습 도구 열기"
           >
-            {/* 위젯 존재를 알리는 아이콘 (Lucide Zap 아이콘 등 사용 가능) */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -135,7 +134,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-gray-900 fill-current"
+              className="fill-current"
             >
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
@@ -187,7 +186,6 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
     </article>
   );
 };
-
 const LockedVideoCard = ({ locked }) => (
   <article className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 opacity-60">
     <div className="relative h-56 bg-gray-200 flex items-center justify-center">
