@@ -1,41 +1,27 @@
 import apiClient from "@/api/core/apiClient";
 import useCustomMove from "@/hooks/useCustomMove";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Lock,
-  Play,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import CoulombsLaw3DPage from "../animaions/CoulombsLaw3DPage";
-import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
-import ParallelResistanceWidget from "../animaions/ParallelResistanceWidget";
-import YDeltaConverterWidget from "../animaions/YDeltaConverterWidget";
 // 🌟 3D 위젯들 Import 추가
-import AmpereLawWidget from "../animaions/AmpereLawWidget";
-import DcRectificationWidget from "../animaions/DcRectificationWidget";
-import Equipotential3DWidget from "../animaions/Equipotential3DWidget";
-import FlemingLeftHandWidget from "../animaions/FlemingLeftHandWidget";
-import ParabolarIntersection from "../animaions/ParabolaIntersection";
-import RotatingMagneticFieldWidget from "../animaions/RotatingMagneticFieldWidget";
+import DetailModal from "./DetailModal";
+import HeroBanner from "./HeroBanner";
+import LockedVideoCard from "./LockedVideoCard";
 // ==========================================
 // 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
 // ==========================================
-const WIDGET_MAP = {
-  trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
-  ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
-  y_delta_converter: YDeltaConverterWidget, // 👈 null 대신 추가!
-  coulombs_law: CoulombsLaw3DPage,
-  coulombs_law: CoulombsLaw3DPage, // 쿨롱의 법칙 (전자기)
-  fleming_left: FlemingLeftHandWidget, // 플레밍 왼손 (기기/전자기)
-  rotating_field: RotatingMagneticFieldWidget, // 회전자기장 (기기)
-  dc_rectifier: DcRectificationWidget, // DC 정류 (기기)
-  equipotential: Equipotential3DWidget, // 등전위면 (전자기)
-  ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
-  parabolaWidget: ParabolarIntersection,
-};
+// const WIDGET_MAP = {
+//   trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
+//   ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
+//   y_delta_converter: YDeltaConverterWidget, // 👈 null 대신 추가!
+//   coulombs_law: CoulombsLaw3DPage,
+//   coulombs_law: CoulombsLaw3DPage, // 쿨롱의 법칙 (전자기)
+//   fleming_left: FlemingLeftHandWidget, // 플레밍 왼손 (기기/전자기)
+//   rotating_field: RotatingMagneticFieldWidget, // 회전자기장 (기기)
+//   dc_rectifier: DcRectificationWidget, // DC 정류 (기기)
+//   equipotential: Equipotential3DWidget, // 등전위면 (전자기)
+//   ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
+//   parabolaWidget: ParabolarIntersection,
+// };
 
 const getCategory = (lecture) => {
   const sub = lecture.subject || "";
@@ -82,254 +68,6 @@ const CATEGORIES = [
   { id: "Vision", label: "Vision", icon: "🚀" },
 ];
 
-// ==========================================
-// 2. 하위 컴포넌트들 (카드, 모달, 배너)
-// ==========================================
-
-const HeroBanner = ({ currentCategoryData, total }) => (
-  <div className="bg-[#0047a5] rounded-2xl p-10 md:p-14 mb-10 text-white relative overflow-hidden shadow-lg transition-colors duration-500">
-    <div className="absolute right-10 top-1/2 -translate-y-1/2 text-[180px] opacity-10 font-serif font-bold pointer-events-none select-none">
-      {currentCategoryData.bgIcon}
-    </div>
-    <div className="relative z-10 max-w-2xl">
-      <h1 className="text-4xl font-extrabold mb-4 font-headline tracking-tight">
-        {currentCategoryData.title}
-      </h1>
-      <p className="text-blue-100 text-lg mb-8 leading-relaxed opacity-90">
-        {currentCategoryData.desc}
-      </p>
-      <div className="flex items-center gap-3">
-        <span className="bg-white/20 px-4 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
-          총 {total}개의 강의
-        </span>
-      </div>
-    </div>
-  </div>
-);
-
-const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
-  console.log("ActiveVideoCard ,video:", video);
-  const finalThumbnail =
-    video.thumbnail ||
-    "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
-
-  return (
-    <article
-      className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100"
-      onClick={() => onRead(video.id)}
-    >
-      <div className="relative h-56 overflow-hidden bg-gray-100">
-        <img
-          src={finalThumbnail}
-          alt={video.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-
-        {/* 1. 왼쪽 상단: 카테고리 태그 */}
-        <div className="absolute top-4 left-4 bg-[#0047a5] text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider uppercase">
-          {video.category || "STEP"}
-        </div>
-
-        {/* 💡 2. 오른쪽 상단: 인터랙티브 위젯 버튼 (이 부분이 빠져있었습니다!) ⭐ */}
-        {video.widgetType && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation(); // 카드 전체 클릭(영상 이동) 방지
-              onOpenModal(video); // 위젯 모달 열기
-            }}
-            className="absolute top-4 right-4 z-10 bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-full shadow-lg transition-all hover:scale-110 flex items-center justify-center group/widget"
-            title="실습 도구 열기"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="fill-current"
-            >
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-            <span className="max-w-0 overflow-hidden group-hover/widget:max-w-xs group-hover/widget:ml-2 transition-all duration-300 text-xs font-black">
-              PRACTICE
-            </span>
-          </button>
-        )}
-
-        {/* 3. 중앙: 호버 시 재생 아이콘 */}
-        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
-            <Play className="text-[#0047a5] fill-current ml-1" size={28} />
-          </div>
-        </div>
-      </div>
-
-      <div className="p-8 flex flex-col flex-grow">
-        <span className="text-[#0047a5] font-bold text-xs uppercase tracking-widest mb-2 block">
-          {video.subject || "영상 강의"}
-        </span>
-        <h2 className="text-2xl font-bold text-gray-900 mb-3 leading-tight line-clamp-2 min-h-[3.5rem]">
-          {video.title}
-        </h2>
-        <p className="text-gray-500 text-base mb-8 font-medium line-clamp-2">
-          {video.description}
-        </p>
-        <div className="mt-auto flex items-center justify-between">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenModal(video);
-            }}
-            className="text-[#0047a5] font-bold text-lg hover:underline underline-offset-4 decoration-2"
-          >
-            상세보기
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRead(video.id);
-            }}
-            className="bg-[#e5edff] text-[#0047a5] text-lg px-8 py-3 rounded-xl font-bold shadow-sm hover:bg-[#0047a5] hover:text-white transition-colors"
-          >
-            시청하기
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-};
-const LockedVideoCard = ({ locked }) => (
-  <article className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 opacity-60">
-    <div className="relative h-56 bg-gray-200 flex items-center justify-center">
-      <Lock className="text-gray-400" size={48} />
-    </div>
-    <div className="p-8 flex flex-col flex-grow">
-      <span className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-2 block">
-        {locked.subject || "영상 강의"}
-      </span>
-      <h3 className="text-2xl font-bold text-gray-900 mb-3 leading-tight line-clamp-2 min-h-[3.5rem]">
-        {locked.title}
-      </h3>
-      <div className="mt-auto">
-        <button
-          disabled
-          className="w-full py-3 bg-gray-100 text-gray-400 text-lg font-bold rounded-xl cursor-not-allowed"
-        >
-          수강 불가 (영상 준비중)
-        </button>
-      </div>
-    </div>
-  </article>
-);
-
-// VideoListPage.jsx 내의 DetailModal 컴포넌트 교체
-
-// VideoListPage.jsx 내의 DetailModal 컴포넌트 교체
-
-const DetailModal = ({ selectedVideo, onClose, onRead }) => {
-  if (!selectedVideo) return null;
-
-  const ActiveWidgetComponent = selectedVideo.widgetType
-    ? WIDGET_MAP[selectedVideo.widgetType]
-    : null;
-
-  // 💡 [추가] 모달 안에서 랜덤 퀴즈 데이터를 받아오기 위한 상태
-  const [modalQuizData, setModalQuizData] = useState(null);
-
-  useEffect(() => {
-    // 위젯 타입이 parabolaWidget일 때만 백엔드 데이터 패칭
-    if (selectedVideo.widgetType === "parabolaWidget") {
-      apiClient
-        .get(`/api/math/random?type=${selectedVideo.id}`)
-        .then((res) => setModalQuizData(res.data))
-        .catch((err) => console.error("모달 위젯 데이터 로딩 실패:", err));
-    }
-  }, [selectedVideo]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 border-b border-gray-100 flex justify-between items-start shrink-0">
-          <div>
-            <div className="bg-[#e5edff] text-[#0047a5] px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-2 inline-block">
-              {ActiveWidgetComponent ? "인터랙티브 실습" : "강의 상세 안내"}
-            </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">
-              {selectedVideo.title}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-red-500 transition-colors p-2"
-          >
-            <X size={28} />
-          </button>
-        </div>
-
-        <div className="p-6 overflow-y-auto flex-grow flex flex-col bg-gray-50/50">
-          {ActiveWidgetComponent ? (
-            <div className="w-full">
-              {/* 💡 [수정] 위젯 컴포넌트에 data props 전달 */}
-              {selectedVideo.widgetType === "parabolaWidget" ? (
-                <ActiveWidgetComponent data={modalQuizData} />
-              ) : (
-                <ActiveWidgetComponent />
-              )}
-            </div>
-          ) : (
-            // ... (기존 강의 정보 텍스트 렌더링 부분 동일) ...
-            <div className="flex-1 space-y-8 max-w-4xl mx-auto">
-              <p className="text-xl text-gray-600 leading-relaxed font-medium">
-                {selectedVideo.description}
-              </p>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h4 className="text-base font-bold text-[#0047a5] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
-                  강의 정보
-                </h4>
-                <div className="space-y-4 text-lg">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">카테고리</span>
-                    <span className="font-bold text-gray-900">
-                      {selectedVideo.category || "미분류"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">과목명</span>
-                    <span className="font-bold text-gray-900">
-                      {selectedVideo.subject || "-"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="p-6 bg-white shrink-0 rounded-b-2xl border-t border-gray-100">
-          <button
-            onClick={() => {
-              onClose();
-              onRead(selectedVideo.id);
-            }}
-            className="w-full py-4 bg-[#0047a5] text-white text-xl font-extrabold rounded-xl shadow-lg hover:bg-blue-800 transition-colors"
-          >
-            지금 바로 학습 시작하기
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 // ==========================================
 // 3. 메인 페이지 컴포넌트
 // ==========================================
