@@ -177,6 +177,7 @@ export default function AiVideoWatch() {
       {/* 💡 [수정] 퀴즈 카드 영역 - Props 전달 필수! */}
       <section className="max-w-4xl mx-auto w-full">
         <ApiQuizCard
+          key={quizData?.problem_id || Date.now()}
           quizData={quizData}
           selectedIndex={selectedIndex}
           isCorrect={isCorrect}
