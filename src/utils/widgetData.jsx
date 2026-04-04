@@ -25,9 +25,10 @@ const WIDGET_MAP = {
   parabolaWidget: lazy(
     () => import("@/components/animaions/ParabolaIntersection"),
   ),
-  vectorInnerProject: lazy(
-    () => import("@/components/animaions/VectorInnerProductWidget"),
-  ),
+  vectorInnerProject: null,
+  // lazy(
+  //   () => import("@/components/animaions/VectorInnerProductWidget"),
+  // )
 };
 
 export default WIDGET_MAP;
