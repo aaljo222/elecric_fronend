@@ -1,17 +1,18 @@
 import { useMemo, useState } from "react";
 
 const ParallelResistanceWidget = () => {
+  // ✅ 모든 상태(State)는 반드시 함수 안에서 선언되어야 합니다.
   const [resistorCount, setResistorCount] = useState(2);
   const [voltage, setVoltage] = useState(12);
   const [resistances, setResistances] = useState([10, 20, 30, 40]);
+  const [selectedIndex, setSelectedIndex] = useState(null); // 저항 선택 상태
 
-  // 계산 로직 (기존과 동일하되 안전장치 강화)
+  // 합성저항 및 전류 계산 로직
   const { totalReq, currents, totalCurrent } = useMemo(() => {
     const activeResistances = resistances.slice(0, resistorCount);
 
-    // 분모 0 방지 및 안전 계산
     const calculatedInvReq = activeResistances.reduce((acc, R) => {
-      const val = Number(R) <= 0.1 ? 0.1 : Number(R); // 최소값 0.1Ω 제한
+      const val = Number(R) <= 0.1 ? 0.1 : Number(R);
       return acc + 1 / val;
     }, 0);
 
@@ -40,7 +41,7 @@ const ParallelResistanceWidget = () => {
         인터랙티브 실습
       </h5>
 
-      {/* 1. 컨트롤 패널 (상단) */}
+      {/* 1. 상단 컨트롤 패널 */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold text-gray-500 uppercase">
@@ -54,7 +55,7 @@ const ParallelResistanceWidget = () => {
                 className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
                   resistorCount === num
                     ? "bg-[#0047a5] text-white shadow-md"
-                    : "bg-white text-gray-400 border border-gray-100"
+                    : "bg-white text-gray-400 border border-gray-200"
                 }`}
               >
                 {num}개
@@ -81,10 +82,10 @@ const ParallelResistanceWidget = () => {
         </div>
       </div>
 
-      {/* 💡 2. 대망의 회로 시각화 및 드로잉 영역 (SVG) ⭐ */}
-      <div className="flex justify-center mb-8 relative bg-white p-6 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+      {/* 2. 회로 시각화 (SVG) */}
+      <div className="flex justify-center mb-8 relative bg-white p-6 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto min-h-[300px]">
         <svg width="400" height="250" className="overflow-visible">
-          {/* 배터리/전압원 기호 */}
+          {/* 전압원 */}
           <g transform="translate(40, 100)">
             <line
               x1="0"
@@ -123,7 +124,6 @@ const ParallelResistanceWidget = () => {
             </text>
           </g>
 
-          {/* 메인 회로선 */}
           <line
             x1="40"
             y1="100"
@@ -157,13 +157,10 @@ const ParallelResistanceWidget = () => {
             strokeWidth="2"
           />
 
-          {/* 병렬 지로 (Branch) 드로잉 및 인터랙션 */}
           {resistances.slice(0, resistorCount).map((R, idx) => {
-            const xPos = 120 + idx * 70; // 저항 간격 70px
-
+            const xPos = 120 + idx * 70;
             return (
               <g key={idx} transform={`translate(${xPos}, 50)`}>
-                {/* 세로 회로선 */}
                 <line
                   x1="0"
                   y1="0"
@@ -180,16 +177,14 @@ const ParallelResistanceWidget = () => {
                   stroke="#cbd5e1"
                   strokeWidth="2"
                 />
-                {/* ✅ 저항 기호 드로잉 (Zigzag) ⭐ */}
                 <polyline
                   points="0,60 10,65 -10,75 10,85 -10,95 10,105 -10,115 10,125 0,130"
                   fill="none"
                   stroke={selectedIndex === idx ? "#0047a5" : "#64748b"}
                   strokeWidth="3"
-                  className="cursor-pointer"
-                  onClick={() => setSelectedIndex(idx)} // 저항 선택
+                  className="cursor-pointer hover:stroke-blue-400"
+                  onClick={() => setSelectedIndex(idx)}
                 />
-                {/* 흐르는 전류 표시 라벨 */}
                 <text
                   x="15"
                   y="40"
@@ -197,13 +192,11 @@ const ParallelResistanceWidget = () => {
                 >
                   I{idx + 1}: {currents[idx]?.toFixed(2)}A
                 </text>
-                <path d="M5 25 L5 35 L10 30 Z" fill="#10b981" />{" "}
-                {/* 전류 방향 화살표 */}
+                <path d="M5 25 L5 35 L10 30 Z" fill="#10b981" />
               </g>
             );
           })}
 
-          {/* 회로 마무리선 */}
           <line
             x1="350"
             y1="50"
@@ -213,7 +206,6 @@ const ParallelResistanceWidget = () => {
             strokeWidth="2"
           />
 
-          {/* 전체 전류 및 합성저항 표시 라벨 */}
           <g transform="translate(180, 20)">
             <rect
               x="0"
@@ -250,9 +242,9 @@ const ParallelResistanceWidget = () => {
           </g>
         </svg>
 
-        {/* 💡 3. 저항값 슬라이더 컨트롤 (선택된 저항에 따라 변함) ⭐ */}
+        {/* 3. 저항값 조절 슬라이더 (저항 클릭 시 등장) */}
         {selectedIndex !== null && selectedIndex < resistorCount && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-xl border border-blue-200 shadow-2xl backdrop-blur-sm z-10 w-48 text-center animate-fade-in">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/95 p-4 rounded-xl border border-blue-200 shadow-2xl backdrop-blur-sm z-10 w-48 text-center animate-fade-in">
             <p className="text-xs font-bold text-blue-700 mb-1">
               R{selectedIndex + 1} 저항값 조절
             </p>
@@ -269,15 +261,15 @@ const ParallelResistanceWidget = () => {
             />
             <button
               onClick={() => setSelectedIndex(null)}
-              className="absolute top-1 right-1 text-gray-400 hover:text-red-500 text-xs"
+              className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
             >
-              ✕
+              <span className="text-lg">✕</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* 4. 최종 결과 리포트 (하단) */}
+      {/* 4. 결과 요약 리포트 */}
       <div className="bg-[#0047a5] p-5 rounded-2xl text-white shadow-lg grid grid-cols-2 gap-4">
         <div className="text-center border-r border-white/10 pr-4">
           <p className="text-[11px] font-bold opacity-80 uppercase mb-1">
@@ -298,16 +290,8 @@ const ParallelResistanceWidget = () => {
           </span>
         </div>
       </div>
-
-      <p className="mt-5 text-[11px] text-gray-400 text-center italic">
-        * 병렬 회로에서 각 지로(Branch)에 흐르는 전류의 합은 전체 전류와
-        같습니다.
-      </p>
     </div>
   );
 };
-
-// 저항 선택을 위한 간단한 상태 추가
-const [selectedIndex, setSelectedIndex] = useState(null);
 
 export default ParallelResistanceWidget;
