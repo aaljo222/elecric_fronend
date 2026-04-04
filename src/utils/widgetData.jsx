@@ -6,6 +6,7 @@ import InteractiveUnitCircle from "@/components/animaions/InteractiveUnitCircle"
 import ParabolaIntersection from "@/components/animaions/ParabolaIntersection";
 import ParallelResistanceWidget from "@/components/animaions/ParallelResistanceWidget";
 import RotatingMagneticFieldWidget from "@/components/animaions/RotatingMagneticFieldWidget";
+import VectorInnerProductWidget from "@/components/animaions/VectorInnerProductWidget";
 import YDeltaConverterWidget from "@/components/animaions/YDeltaConverterWidget";
 
 const WIDGET_MAP = {
@@ -18,5 +19,6 @@ const WIDGET_MAP = {
   equipotential: Equipotential3DWidget, // 등전위면 (전자기)
   ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
   parabolaWidget: ParabolaIntersection,
+  vectorInnerProject: VectorInnerProductWidget,
 };
 export default WIDGET_MAP;

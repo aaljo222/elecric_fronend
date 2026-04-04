@@ -162,7 +162,6 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/8fc05f0f6c31f19deeb976cb2b1562cf/manifest/video.m3u8",
     ],
   },
-  // 💡 2. 완전제곱식 강의 데이터 추가
   {
     id: "e935dc2d2e592a79688c5f40da5fbe23", // 요청하신 영상 해시 ID
     subject: "기초수학 (중학)",
@@ -177,6 +176,22 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/watch",
     ],
     generator: generatePerfectSquareQuiz, // 💡 방금 만든 문제 생성기 연결!
+  },
+  {
+    id: "201092af306ff8cb381808e4c3f45e0c", // DB와 일치하는 새 영상 ID
+    subject: "심화수학 (고등)",
+    title: "10강. 기하와 벡터의 내적",
+    duration: "-",
+    description:
+      "두 벡터의 내적 연산과 기하학적 의미(투영)를 직관적으로 이해하고, 역코사인(cos⁻¹θ)을 이용해 사이각을 구하는 방법을 학습합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/201092af306ff8cb381808e4c3f45e0c/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/201092af306ff8cb381808e4c3f45e0c/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/201092af306ff8cb381808e4c3f45e0c/manifest/video.m3u8",
+    ],
+    useBackend: true, // 무작위 퀴즈를 위해 백엔드 API를 사용하도록 설정
   },
   {
     id: "math_polynomial",
