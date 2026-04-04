@@ -1,39 +1,12 @@
 import apiClient from "@/api/core/apiClient";
-import { X } from "lucide-react"; // 🌟 X 아이콘 에러 해결!
-import { useEffect, useState } from "react"; // 🌟 useState, useEffect 에러 해결!
-
-// 💡 3D 위젯들 Import (경로가 ../animations 인지 ../animaions 인지 꼭 실제 폴더명과 확인하세요!)
-import AmpereLawWidget from "../animaions/AmpereLawWidget";
-import CoulombsLaw3DPage from "../animaions/CoulombsLaw3DPage";
-import DcRectificationWidget from "../animaions/DcRectificationWidget";
-import Equipotential3DWidget from "../animaions/Equipotential3DWidget";
-import FlemingLeftHandWidget from "../animaions/FlemingLeftHandWidget";
-import InteractiveUnitCircle from "../animaions/InteractiveUnitCircle";
-import ParabolarIntersection from "../animaions/ParabolaIntersection";
-import ParallelResistanceWidget from "../animaions/ParallelResistanceWidget";
-import RotatingMagneticFieldWidget from "../animaions/RotatingMagneticFieldWidget";
-import YDeltaConverterWidget from "../animaions/YDeltaConverterWidget";
-
-// 위젯 매핑 (DB의 widgetType과 일치해야 함)
-const WIDGET_MAP = {
-  trig_circle: InteractiveUnitCircle,
-  ohms_law: ParallelResistanceWidget,
-  y_delta_converter: YDeltaConverterWidget,
-  coulombs_law: CoulombsLaw3DPage,
-  fleming_left: FlemingLeftHandWidget,
-  rotating_field: RotatingMagneticFieldWidget,
-  dc_rectifier: DcRectificationWidget,
-  equipotential: Equipotential3DWidget,
-  ampere_law: AmpereLawWidget,
-  parabolaWidget: ParabolarIntersection, // 8강 포물선 위젯 키값 매핑
-};
+import WIDGET_MAP from "@/utils/widgetData";
+import { X } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
 
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
-  // 모달 내부에서 위젯(퀴즈) 데이터를 불러오기 위한 상태
   const [modalQuizData, setModalQuizData] = useState(null);
 
   useEffect(() => {
-    // 위젯 타입이 parabolaWidget일 때만 백엔드 데이터 실시간 패칭
     if (selectedVideo?.widgetType === "parabolaWidget") {
       apiClient
         .get(`/api/math/random?type=${selectedVideo.id}`)
@@ -57,7 +30,6 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
         className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 모달 헤더 영역 */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-start shrink-0">
           <div>
             <div className="bg-[#e5edff] text-[#0047a5] px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-2 inline-block">
@@ -75,17 +47,23 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
           </button>
         </div>
 
-        {/* 모달 본문 영역 (위젯 or 상세설명) */}
         <div className="p-6 overflow-y-auto flex-grow flex flex-col bg-gray-50/50">
           {ActiveWidgetComponent ? (
-            <div className="w-full">
-              {/* 위젯에 백엔드에서 받아온 데이터(data props) 전달 */}
-              {selectedVideo.widgetType === "parabolaWidget" ? (
-                <ActiveWidgetComponent data={modalQuizData} />
-              ) : (
-                <ActiveWidgetComponent />
-              )}
-            </div>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center h-48 text-gray-400 font-bold">
+                  위젯 로딩 중...
+                </div>
+              }
+            >
+              <div className="w-full">
+                {selectedVideo.widgetType === "parabolaWidget" ? (
+                  <ActiveWidgetComponent data={modalQuizData} />
+                ) : (
+                  <ActiveWidgetComponent />
+                )}
+              </div>
+            </Suspense>
           ) : (
             <div className="flex-1 space-y-8 max-w-4xl mx-auto">
               <p className="text-xl text-gray-600 leading-relaxed font-medium">
@@ -114,7 +92,6 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
           )}
         </div>
 
-        {/* 모달 하단 버튼 영역 */}
         <div className="p-6 bg-white shrink-0 rounded-b-2xl border-t border-gray-100">
           <button
             onClick={() => {
