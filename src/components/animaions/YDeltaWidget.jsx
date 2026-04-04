@@ -1,6 +1,73 @@
 import { ArrowRightLeft, Calculator, Zap } from "lucide-react";
 import { useState } from "react";
 
+// ==========================================
+// 1. 수식 렌더링용 공통 컴포넌트 (MathFraction)
+// ==========================================
+const MathFraction = ({
+  target,
+  numerator,
+  denominator,
+  result,
+  unit = "Ω",
+}) => {
+  return (
+    <div className="flex items-center text-lg font-medium text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+      <span className="font-bold text-gray-900 mr-2 shrink-0">{target} = </span>
+
+      <div className="flex flex-col items-center justify-center mx-2 shrink-0">
+        <span className="border-b-2 border-gray-400 px-2 pb-1 text-center whitespace-nowrap">
+          {numerator}
+        </span>
+        <span className="px-2 pt-1 text-center whitespace-nowrap">
+          {denominator}
+        </span>
+      </div>
+
+      {result && (
+        <div className="shrink-0 flex items-center">
+          <span className="mx-2">=</span>
+          <span className="font-bold text-blue-600">
+            {result}{" "}
+            <span className="text-sm text-gray-500 font-normal">{unit}</span>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==========================================
+// 2. 입력 필드 컴포넌트 (InputField)
+// ==========================================
+const InputField = ({ label, name, value, onChange, disabled, color }) => {
+  const isBlue = color === "blue";
+  return (
+    <div
+      className={`flex items-center justify-between bg-white px-4 py-2 rounded-lg border shadow-sm ${disabled ? "opacity-70 bg-gray-50" : "ring-1 ring-offset-1 " + (isBlue ? "ring-blue-200" : "ring-green-200")}`}
+    >
+      <span
+        className={`font-bold w-8 ${isBlue ? "text-blue-600" : "text-green-600"}`}
+      >
+        {label}
+      </span>
+      <input
+        type="number"
+        name={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder="0"
+        className="w-24 text-right outline-none font-mono text-lg bg-transparent text-gray-900 border-b-2 border-transparent focus:border-gray-300"
+      />
+      <span className="text-gray-400 ml-2">Ω</span>
+    </div>
+  );
+};
+
+// ==========================================
+// 3. 메인 위젯 컴포넌트 (YDeltaConverterWidget)
+// ==========================================
 const YDeltaConverterWidget = () => {
   const [mode, setMode] = useState("YtoDelta");
 
@@ -53,31 +120,9 @@ const YDeltaConverterWidget = () => {
     }
   };
 
-  // 분수 형태를 렌더링하기 위한 헬퍼 컴포넌트
-  const MathFraction = ({ target, numerator, denominator, result }) => (
-    <div className="flex items-center text-lg font-medium text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
-      <span className="font-bold text-gray-900 mr-2">{target} = </span>
-      <div className="flex flex-col items-center justify-center mx-2">
-        <span className="border-b-2 border-gray-400 px-2 pb-1">
-          {numerator}
-        </span>
-        <span className="px-2 pt-1">{denominator}</span>
-      </div>
-      {result && (
-        <>
-          <span className="mx-2">=</span>
-          <span className="font-bold text-blue-600">
-            {result}{" "}
-            <span className="text-sm text-gray-500 font-normal">Ω</span>
-          </span>
-        </>
-      )}
-    </div>
-  );
-
   return (
     <div className="w-full h-full flex flex-col bg-gray-50 rounded-xl shadow-inner overflow-hidden font-sans">
-      {/* 위젯 헤더 */}
+      {/* 헤더 영역 */}
       <div className="bg-[#0047a5] text-white p-6 flex justify-between items-center shrink-0">
         <div>
           <h3 className="text-2xl font-bold flex items-center gap-2">
@@ -113,13 +158,13 @@ const YDeltaConverterWidget = () => {
         </div>
       </div>
 
+      {/* 시각화 및 입력 영역 */}
       <div className="flex flex-col lg:flex-row p-6 gap-6 items-stretch justify-center">
-        {/* Y 결선 영역 */}
+        {/* Y 결선 */}
         <div
           className={`flex flex-col items-center p-6 rounded-2xl w-full max-w-sm transition-all duration-300 ${mode === "YtoDelta" ? "bg-white shadow-lg border-2 border-blue-400" : "bg-gray-100/50 border border-gray-200"}`}
         >
           <h4 className="text-xl font-bold text-blue-600 mb-4">Y (Wye) 결선</h4>
-
           <div className="relative w-48 h-48 mb-6">
             <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
               <path
@@ -177,7 +222,6 @@ const YDeltaConverterWidget = () => {
               {yValues.r3 || "R3"}Ω
             </span>
           </div>
-
           <div className="w-full space-y-3">
             <InputField
               label="R1"
@@ -206,7 +250,6 @@ const YDeltaConverterWidget = () => {
           </div>
         </div>
 
-        {/* 중앙 화살표 */}
         <div className="flex flex-col items-center justify-center text-gray-400 shrink-0">
           <ArrowRightLeft
             size={40}
@@ -214,14 +257,13 @@ const YDeltaConverterWidget = () => {
           />
         </div>
 
-        {/* 델타 결선 영역 */}
+        {/* 델타 결선 */}
         <div
           className={`flex flex-col items-center p-6 rounded-2xl w-full max-w-sm transition-all duration-300 ${mode === "DeltaToY" ? "bg-white shadow-lg border-2 border-green-400" : "bg-gray-100/50 border border-gray-200"}`}
         >
           <h4 className="text-xl font-bold text-green-600 mb-4">
             Δ (Delta) 결선
           </h4>
-
           <div className="relative w-48 h-48 mb-6">
             <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
               <polygon
@@ -274,7 +316,6 @@ const YDeltaConverterWidget = () => {
               {deltaValues.ra || "Ra"}Ω
             </span>
           </div>
-
           <div className="w-full space-y-3">
             <InputField
               label="Ra"
@@ -304,7 +345,7 @@ const YDeltaConverterWidget = () => {
         </div>
       </div>
 
-      {/* 🌟 실시간 계산 수식 표시 영역 (새로 추가됨) 🌟 */}
+      {/* 실시간 계산 수식 영역 (이 부분이 무조건 렌더링 됩니다) */}
       <div className="bg-gray-100 p-6 border-t border-gray-200 mt-auto">
         <h4 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4">
           <Calculator size={20} className="text-indigo-600" />
@@ -362,31 +403,6 @@ const YDeltaConverterWidget = () => {
             : "💡 Δ를 Y로 바꿀 땐 분모는 모두 더하고, 분자는 구하고자 하는 위치의 '양옆' 저항을 곱합니다."}
         </p>
       </div>
-    </div>
-  );
-};
-
-const InputField = ({ label, name, value, onChange, disabled, color }) => {
-  const isBlue = color === "blue";
-  return (
-    <div
-      className={`flex items-center justify-between bg-white px-4 py-2 rounded-lg border shadow-sm ${disabled ? "opacity-70 bg-gray-50" : "ring-1 ring-offset-1 " + (isBlue ? "ring-blue-200" : "ring-green-200")}`}
-    >
-      <span
-        className={`font-bold w-8 ${isBlue ? "text-blue-600" : "text-green-600"}`}
-      >
-        {label}
-      </span>
-      <input
-        type="number"
-        name={name}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        placeholder="0"
-        className="w-24 text-right outline-none font-mono text-lg bg-transparent text-gray-900 border-b-2 border-transparent focus:border-gray-300"
-      />
-      <span className="text-gray-400 ml-2">Ω</span>
     </div>
   );
 };
