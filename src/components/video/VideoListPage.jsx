@@ -34,7 +34,7 @@ const WIDGET_MAP = {
   dc_rectifier: DcRectificationWidget, // DC 정류 (기기)
   equipotential: Equipotential3DWidget, // 등전위면 (전자기)
   ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
-  parabola_intersection: ParabolarIntersection,
+  parabolaWidget: ParabolarIntersection,
 };
 
 const getCategory = (lecture) => {
@@ -228,12 +228,27 @@ const LockedVideoCard = ({ locked }) => (
 
 // VideoListPage.jsx 내의 DetailModal 컴포넌트 교체
 
+// VideoListPage.jsx 내의 DetailModal 컴포넌트 교체
+
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
 
   const ActiveWidgetComponent = selectedVideo.widgetType
     ? WIDGET_MAP[selectedVideo.widgetType]
     : null;
+
+  // 💡 [추가] 모달 안에서 랜덤 퀴즈 데이터를 받아오기 위한 상태
+  const [modalQuizData, setModalQuizData] = useState(null);
+
+  useEffect(() => {
+    // 위젯 타입이 parabolaWidget일 때만 백엔드 데이터 패칭
+    if (selectedVideo.widgetType === "parabolaWidget") {
+      apiClient
+        .get(`/api/math/random?type=${selectedVideo.id}`)
+        .then((res) => setModalQuizData(res.data))
+        .catch((err) => console.error("모달 위젯 데이터 로딩 실패:", err));
+    }
+  }, [selectedVideo]);
 
   return (
     <div
@@ -261,13 +276,18 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
           </button>
         </div>
 
-        {/* 💡 화면 분할 로직 개선: 위젯이 있으면 위젯만 100% 꽉 차게 렌더링 */}
         <div className="p-6 overflow-y-auto flex-grow flex flex-col bg-gray-50/50">
           {ActiveWidgetComponent ? (
             <div className="w-full">
-              <ActiveWidgetComponent />
+              {/* 💡 [수정] 위젯 컴포넌트에 data props 전달 */}
+              {selectedVideo.widgetType === "parabolaWidget" ? (
+                <ActiveWidgetComponent data={modalQuizData} />
+              ) : (
+                <ActiveWidgetComponent />
+              )}
             </div>
           ) : (
+            // ... (기존 강의 정보 텍스트 렌더링 부분 동일) ...
             <div className="flex-1 space-y-8 max-w-4xl mx-auto">
               <p className="text-xl text-gray-600 leading-relaxed font-medium">
                 {selectedVideo.description}
