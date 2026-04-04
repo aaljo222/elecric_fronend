@@ -104,6 +104,7 @@ export const mathLectures = [
   // constants/videoData.js 내부 수정
   {
     id: "61b1ec56bcd7e87535d18c40bb9afb21",
+    // 61b1ec56bcd7e87535d18c40bb9afb21
     subject: "기초수학 (중학)",
     title: "8강. 포물선과 직선의 교점",
     duration: "10:30", // 적절한 시간 입력
@@ -112,8 +113,9 @@ export const mathLectures = [
     thumbnail:
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/61b1ec56bcd7e87535d18c40bb9afb21/thumbnails/thumbnail.jpg",
     thumbnailTime: "10s",
-    video_url:
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/61b1ec56bcd7e87535d18c40bb9afb21/watch", // 👈 이 필드가 있어야 목록에서 보입니다!
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/61b1ec56bcd7e87535d18c40bb9afb21/watch",
+    ], // 👈 이 필드가 있어야 목록에서 보입니다!
     useBackend: true,
   },
   {
