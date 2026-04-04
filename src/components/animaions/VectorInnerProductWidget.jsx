@@ -1,21 +1,36 @@
+import katex from "katex";
 import "katex/dist/katex.min.css";
 import { AlertCircle, Calculator, MousePointer2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+
+// ── KaTeX 헬퍼 컴포넌트 ──────────────────────────────────────
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
+// ─────────────────────────────────────────────────────────────
 
 const VectorInnerProductWidget = () => {
-  // --- 1. 상태 관리 ---
-  const [u, setU] = useState({ x: 3, y: 4 }); // 벡터 U (파란색)
-  const [v, setV] = useState({ x: 6, y: 0 }); // 벡터 V (빨간색)
-  const [dragging, setDragging] = useState(null); // 'u' 또는 'v'
+  const [u, setU] = useState({ x: 3, y: 4 });
+  const [v, setV] = useState({ x: 6, y: 0 });
+  const [dragging, setDragging] = useState(null);
   const svgRef = useRef(null);
 
-  // --- 2. 수학 및 렌더링 상수 ---
   const SVG_SIZE = 500;
   const CENTER = SVG_SIZE / 2;
-  const SCALE = 25; // 1단위 = 25px (총 -10 ~ 10 범위)
+  const SCALE = 25;
 
-  // 좌표 변환 함수 (수학 좌표 <-> SVG 픽셀 좌표)
   const mathToSvg = (mathX, mathY) => ({
     x: CENTER + mathX * SCALE,
     y: CENTER - mathY * SCALE,
@@ -26,13 +41,11 @@ const VectorInnerProductWidget = () => {
     y: (CENTER - svgY) / SCALE,
   });
 
-  // --- 3. 실시간 수학 연산 (💡 오류 해결 부분!) ---
   const { dot, magU, magV, proj, angle, isOrthogonal } = useMemo(() => {
     const dotProduct = u.x * v.x + u.y * v.y;
     const magnitudeU = Math.sqrt(u.x ** 2 + u.y ** 2);
     const magnitudeV = Math.sqrt(v.x ** 2 + v.y ** 2);
 
-    // 투영 벡터 (Projection of U onto V) = (U·V / |V|^2) * V
     let projX = 0;
     let projY = 0;
     if (magnitudeV > 0) {
@@ -41,16 +54,12 @@ const VectorInnerProductWidget = () => {
       projY = scalar * v.y;
     }
 
-    // 각도 계산 (cos^-1) - 💡 안전한 처리
     let theta = 0;
     if (magnitudeU > 0 && magnitudeV > 0) {
       let cosTheta = dotProduct / (magnitudeU * magnitudeV);
-      // 부동소수점 오차 방지: -1.0 ~ 1.0 사이로 강제 고정
       if (cosTheta > 1) cosTheta = 1;
       if (cosTheta < -1) cosTheta = -1;
       theta = (Math.acos(cosTheta) * 180) / Math.PI;
-    } else {
-      theta = 0; // 한 벡터의 길이가 0일 경우 안전하게 0으로 처리
     }
 
     return {
@@ -58,12 +67,11 @@ const VectorInnerProductWidget = () => {
       magU: magnitudeU,
       magV: magnitudeV,
       proj: { x: projX, y: projY },
-      angle: isNaN(theta) ? 0 : theta, // NaN 방어 로직
+      angle: isNaN(theta) ? 0 : theta,
       isOrthogonal: dotProduct === 0 && magnitudeU > 0 && magnitudeV > 0,
     };
   }, [u, v]);
 
-  // --- 4. 드래그 이벤트 핸들러 ---
   const handlePointerDown = (e, vectorName) => {
     e.preventDefault();
     setDragging(vectorName);
@@ -73,7 +81,6 @@ const VectorInnerProductWidget = () => {
     if (!dragging || !svgRef.current) return;
 
     const rect = svgRef.current.getBoundingClientRect();
-    // 터치 이벤트 지원 추가 (모바일 대응)
     let clientX = e.clientX;
     let clientY = e.clientY;
 
@@ -101,12 +108,9 @@ const VectorInnerProductWidget = () => {
     if (dragging === "v") setV({ x: snappedX, y: snappedY });
   };
 
-  const handlePointerUp = () => {
-    setDragging(null);
-  };
+  const handlePointerUp = () => setDragging(null);
 
   useEffect(() => {
-    // 마우스 및 터치 이벤트 모두 지원하도록 수정
     window.addEventListener("mouseup", handlePointerUp);
     window.addEventListener("touchend", handlePointerUp);
     return () => {
@@ -115,7 +119,6 @@ const VectorInnerProductWidget = () => {
     };
   }, []);
 
-  // --- 5. 렌더링 헬퍼 ---
   const svgU = mathToSvg(u.x, u.y);
   const svgV = mathToSvg(v.x, v.y);
   const svgProj = mathToSvg(proj.x, proj.y);
@@ -148,7 +151,7 @@ const VectorInnerProductWidget = () => {
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 max-w-6xl mx-auto my-4">
-      {/* 왼쪽: SVG 시각화 영역 */}
+      {/* 왼쪽: SVG 시각화 */}
       <div className="flex-1 relative touch-none select-none">
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-gray-100 text-sm font-bold text-gray-600 flex items-center gap-2 z-10">
           <MousePointer2 size={16} className="text-blue-500 animate-pulse" />
@@ -163,10 +166,8 @@ const VectorInnerProductWidget = () => {
           onTouchMove={handlePointerMove}
           style={{ touchAction: "none" }}
         >
-          {/* 그리드 및 축 */}
           <g>{gridLines}</g>
 
-          {/* 직각(90도) 표시 심볼 */}
           {isOrthogonal && (
             <g>
               <rect
@@ -182,7 +183,6 @@ const VectorInnerProductWidget = () => {
             </g>
           )}
 
-          {/* 투영선 (Dashed) */}
           <line
             x1={svgU.x}
             y1={svgU.y}
@@ -208,7 +208,7 @@ const VectorInnerProductWidget = () => {
             transform={`translate(${svgV.x}, ${svgV.y}) rotate(${Math.atan2(svgOrigin.y - svgV.y, svgV.x - svgOrigin.x) * (180 / Math.PI)})`}
           />
 
-          {/* 투영된 벡터 (초록색) */}
+          {/* 투영 벡터 (초록색) */}
           {dot !== 0 && (
             <line
               x1={svgOrigin.x}
@@ -237,7 +237,7 @@ const VectorInnerProductWidget = () => {
             transform={`translate(${svgU.x}, ${svgU.y}) rotate(${Math.atan2(svgOrigin.y - svgU.y, svgU.x - svgOrigin.x) * (180 / Math.PI)})`}
           />
 
-          {/* 드래그 핸들 */}
+          {/* 드래그 핸들 (투명 원) */}
           <circle
             cx={svgV.x}
             cy={svgV.y}
@@ -257,6 +257,7 @@ const VectorInnerProductWidget = () => {
             onTouchStart={(e) => handlePointerDown(e, "u")}
           />
 
+          {/* 끝점 표시 */}
           <circle
             cx={svgV.x}
             cy={svgV.y}
@@ -278,13 +279,12 @@ const VectorInnerProductWidget = () => {
         </svg>
       </div>
 
-      {/* 오른쪽: 수학 계산 정보 패널 */}
+      {/* 오른쪽: 계산 패널 */}
       <div className="flex-1 flex flex-col gap-4 min-w-[300px]">
         <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2 border-b pb-4">
           <Calculator className="text-[#0047a5]" /> 실시간 내적 계산기
         </h3>
 
-        {/* 핵심 알림 */}
         <div
           className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-start gap-3 ${
             isOrthogonal
@@ -317,7 +317,6 @@ const VectorInnerProductWidget = () => {
           </div>
         </div>
 
-        {/* 연산 상세 과정 */}
         <div className="bg-slate-50 p-6 rounded-xl space-y-6 text-gray-700">
           {/* 1. 벡터 좌표 */}
           <div>
@@ -353,17 +352,19 @@ const VectorInnerProductWidget = () => {
             </div>
           </div>
 
-          {/* 3. 사이각 계산 (Arccosine) */}
+          {/* 3. 각도 계산 */}
           <div>
             <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
               3. Angle & Arccosine (역코사인)
             </div>
             <div className="bg-white p-4 rounded-lg border border-gray-200 overflow-x-auto">
               <div className="text-sm text-gray-500 mb-2 border-b pb-2">
-                내적 공식을 변형하면 각도 $\theta$를 구할 수 있습니다: <br />
-                <InlineMath
-                  math={`\\cos\\theta = \\frac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}| |\\vec{v}|}`}
-                />
+                내적 공식을 변형하면 각도 θ를 구할 수 있습니다:
+                <div className="mt-1">
+                  <InlineMath
+                    math={`\\cos\\theta = \\frac{\\vec{u} \\cdot \\vec{v}}{|\\vec{u}| |\\vec{v}|}`}
+                  />
+                </div>
               </div>
               <BlockMath
                 math={`\\theta = \\cos^{-1}\\left(\\frac{${dot}}{${magU.toFixed(1)} \\times ${magV.toFixed(1)}}\\right)`}
