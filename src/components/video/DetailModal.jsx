@@ -1,7 +1,6 @@
 import WIDGET_MAP from "@/utils/widgetData";
-// DetailModal.jsx 파일의 맨 위!
+import { X } from "lucide-react"; // 👈 이 줄을 추가해 주세요!
 import { useEffect, useState } from "react";
-
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
 
