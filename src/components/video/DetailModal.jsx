@@ -1,4 +1,4 @@
-export default DetailModal = ({ selectedVideo, onClose, onRead }) => {
+const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
 
   const ActiveWidgetComponent = selectedVideo.widgetType
@@ -98,3 +98,5 @@ export default DetailModal = ({ selectedVideo, onClose, onRead }) => {
     </div>
   );
 };
+
+export default DetailModal;

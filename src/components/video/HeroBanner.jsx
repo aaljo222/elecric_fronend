@@ -1,4 +1,4 @@
-export default HeroBanner = ({ currentCategoryData, total }) => (
+const HeroBanner = ({ currentCategoryData, total }) => (
   <div className="bg-[#0047a5] rounded-2xl p-10 md:p-14 mb-10 text-white relative overflow-hidden shadow-lg transition-colors duration-500">
     <div className="absolute right-10 top-1/2 -translate-y-1/2 text-[180px] opacity-10 font-serif font-bold pointer-events-none select-none">
       {currentCategoryData.bgIcon}
@@ -18,3 +18,5 @@ export default HeroBanner = ({ currentCategoryData, total }) => (
     </div>
   </div>
 );
+
+export default HeroBanner;

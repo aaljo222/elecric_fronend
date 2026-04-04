@@ -93,3 +93,4 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
     </article>
   );
 };
+export default ActiveVideoCard;
