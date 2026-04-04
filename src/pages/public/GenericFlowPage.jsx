@@ -16,7 +16,26 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-import { BlockMath, InlineMath } from "react-katex";
+// 교체할 내용 (각 파일 상단에 추가)
+import katex from "katex";
+import "katex/dist/katex.min.css";
+
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
 import { useLocation, useNavigate } from "react-router-dom";
 
 const NODE_STYLES = {

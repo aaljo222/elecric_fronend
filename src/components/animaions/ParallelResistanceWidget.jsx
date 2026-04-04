@@ -1,7 +1,24 @@
 import "katex/dist/katex.min.css";
 import { useMemo, useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+// 교체할 내용 (각 파일 상단에 추가)
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
 const ParallelResistanceWidget = () => {
   const [resistorCount, setResistorCount] = useState(3);
   const [voltage, setVoltage] = useState(35);

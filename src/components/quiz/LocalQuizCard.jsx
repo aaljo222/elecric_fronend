@@ -1,6 +1,23 @@
-import React, { useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+import { useState } from "react";
+// 교체할 내용 (각 파일 상단에 추가)
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
 const LocalQuizCard = ({ title, generateFunc }) => {
   const [quizData, setQuizData] = useState(null);
   const [showSolution, setShowSolution] = useState(false);

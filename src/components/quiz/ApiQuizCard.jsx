@@ -1,8 +1,25 @@
 import { fetchRandomProblem } from "@/services/mathService"; // 생성하신 서비스 임포트
 import { Loader2 } from "lucide-react"; // 로딩 아이콘 (필요시 추가)
 import { useCallback, useEffect, useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+// 교체할 내용 (각 파일 상단에 추가)
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
 const ApiQuizCard = ({ lectureId }) => {
   // 1. 내부 상태(State) 관리
   const [quizData, setQuizData] = useState(null);

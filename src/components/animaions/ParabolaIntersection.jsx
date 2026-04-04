@@ -1,7 +1,24 @@
 import "katex/dist/katex.min.css";
 import { useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+// 교체할 내용 (각 파일 상단에 추가)
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
 /**
  * 포물선과 직선의 교점 위젯 컴포넌트
  * @param {Object} props.data - 백엔드에서 전달받은 문제 데이터
