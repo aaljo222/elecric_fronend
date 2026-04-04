@@ -1,3 +1,4 @@
+import apiClient from "@/api/core/apiClient";
 import "katex/dist/katex.min.css";
 import {
   BookOpen,
@@ -17,7 +18,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import { BlockMath, InlineMath } from "react-katex";
 import { useLocation, useNavigate } from "react-router-dom";
-import apiClient from "@/api/core/apiClient";
 
 const NODE_STYLES = {
   chapter: {

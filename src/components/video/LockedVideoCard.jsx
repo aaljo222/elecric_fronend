@@ -1,4 +1,4 @@
-export default LockedVideoCard = ({ locked }) => (
+const LockedVideoCard = ({ locked }) => (
   <article className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 opacity-60">
     <div className="relative h-56 bg-gray-200 flex items-center justify-center">
       <Lock className="text-gray-400" size={48} />
@@ -21,3 +21,5 @@ export default LockedVideoCard = ({ locked }) => (
     </div>
   </article>
 );
+
+export default LockedVideoCard;
