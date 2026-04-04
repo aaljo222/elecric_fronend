@@ -212,10 +212,11 @@ const LockedVideoCard = ({ locked }) => (
   </article>
 );
 
+// VideoListPage.jsx 내의 DetailModal 컴포넌트 교체
+
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
 
-  // widgetType에 맞는 컴포넌트 추출
   const ActiveWidgetComponent = selectedVideo.widgetType
     ? WIDGET_MAP[selectedVideo.widgetType]
     : null;
@@ -226,15 +227,15 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-8 border-b border-gray-100 flex justify-between items-start shrink-0">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-start shrink-0">
           <div>
-            <div className="bg-[#e5edff] text-[#0047a5] px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-3 inline-block">
-              강의 상세 안내
+            <div className="bg-[#e5edff] text-[#0047a5] px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-2 inline-block">
+              {ActiveWidgetComponent ? "인터랙티브 실습" : "강의 상세 안내"}
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">
+            <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">
               {selectedVideo.title}
             </h2>
           </div>
@@ -242,55 +243,51 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
             onClick={onClose}
             className="text-gray-400 hover:text-red-500 transition-colors p-2"
           >
-            <X size={32} />
+            <X size={28} />
           </button>
         </div>
 
-        <div className="p-8 overflow-y-auto flex-grow flex flex-col xl:flex-row gap-8">
-          {/* 설명 영역 */}
-          <div className="flex-1 space-y-8">
-            <p className="text-xl text-gray-600 leading-relaxed font-medium">
-              {selectedVideo.description}
-            </p>
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-              <h4 className="text-base font-bold text-[#0047a5] uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">
-                강의 정보
-              </h4>
-              <div className="space-y-4 text-lg">
-                <div className="flex justify-between">
-                  <span>카테고리</span>
-                  <span className="font-bold text-gray-900">
-                    {selectedVideo.category || "미분류"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>과목명</span>
-                  <span className="font-bold text-gray-900">
-                    {selectedVideo.subject || "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 위젯 영역 */}
-          {ActiveWidgetComponent && (
-            <div className="flex-1 border-t xl:border-t-0 xl:border-l border-gray-100 pt-8 xl:pt-0 xl:pl-8 text-center">
-              <div className="mb-4 inline-block bg-blue-100 text-[#0047a5] px-3 py-1 rounded text-sm font-bold uppercase tracking-widest">
-                인터랙티브 실습
-              </div>
+        {/* 💡 화면 분할 로직 개선: 위젯이 있으면 위젯만 100% 꽉 차게 렌더링 */}
+        <div className="p-6 overflow-y-auto flex-grow flex flex-col bg-gray-50/50">
+          {ActiveWidgetComponent ? (
+            <div className="w-full h-full">
               <ActiveWidgetComponent />
+            </div>
+          ) : (
+            <div className="flex-1 space-y-8 max-w-4xl mx-auto">
+              <p className="text-xl text-gray-600 leading-relaxed font-medium">
+                {selectedVideo.description}
+              </p>
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h4 className="text-base font-bold text-[#0047a5] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
+                  강의 정보
+                </h4>
+                <div className="space-y-4 text-lg">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">카테고리</span>
+                    <span className="font-bold text-gray-900">
+                      {selectedVideo.category || "미분류"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">과목명</span>
+                    <span className="font-bold text-gray-900">
+                      {selectedVideo.subject || "-"}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="p-8 bg-gray-50 shrink-0 rounded-b-2xl border-t border-gray-100">
+        <div className="p-6 bg-white shrink-0 rounded-b-2xl border-t border-gray-100">
           <button
             onClick={() => {
               onClose();
               onRead(selectedVideo.id);
             }}
-            className="w-full py-5 bg-[#0047a5] text-white text-xl font-extrabold rounded-xl shadow-lg hover:bg-blue-800 transition-colors"
+            className="w-full py-4 bg-[#0047a5] text-white text-xl font-extrabold rounded-xl shadow-lg hover:bg-blue-800 transition-colors"
           >
             지금 바로 학습 시작하기
           </button>
@@ -299,7 +296,6 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
     </div>
   );
 };
-
 // ==========================================
 // 3. 메인 페이지 컴포넌트
 // ==========================================
