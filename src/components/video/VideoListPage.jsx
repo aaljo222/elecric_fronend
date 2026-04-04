@@ -3,6 +3,7 @@ import useCustomMove from "@/hooks/useCustomMove";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 // 🌟 3D 위젯들 Import 추가
+import ActiveVideoCard from "./ActiveVideoCard";
 import DetailModal from "./DetailModal";
 import HeroBanner from "./HeroBanner";
 import LockedVideoCard from "./LockedVideoCard";
