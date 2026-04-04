@@ -5,25 +5,15 @@ const ParallelResistanceWidget = () => {
   const [voltage, setVoltage] = useState(12); // 전압 (V)
   const [resistances, setResistances] = useState([10, 20, 30, 40]); // 저항값들 (Ω)
 
-  // 합성저항 및 전류 계산 로직
   const { totalReq, currents, totalCurrent } = useMemo(() => {
-    const activeResistances = resistances.slice(0, resistorCount);
-
-    // 1/Req = 1/R1 + 1/R2 + ...
-    const invReq = activeResistances.reduce((acc, R) => acc + 1 / (R || 1), 0);
+    // ... 계산 로직
     const Req = 1 / invReq;
-
-    // 각각의 전류 I = V / R
-    const branchCurrents = activeResistances.map((R) => voltage / (R || 1));
-    const totalI = voltage / Req;
-
     return {
-      totalReq: Req,
+      totalReq: Req, // 👈 여기서 정의한 이름이 중요합니다.
       currents: branchCurrents,
       totalCurrent: totalI,
     };
   }, [resistorCount, voltage, resistances]);
-
   const handleResChange = (idx, value) => {
     const newRes = [...resistances];
     newRes[idx] = Number(value);
@@ -109,6 +99,7 @@ const ParallelResistanceWidget = () => {
       <div className="bg-[#0047a5] p-5 rounded-2xl text-white shadow-lg">
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/20">
           <span className="font-bold opacity-80">합성저항 ($R_{eq}$)</span>
+          {/* 💡 반드시 정의된 변수명인 totalReq를 사용해야 합니다. */}
           <span className="text-2xl font-black">{totalReq.toFixed(2)} Ω</span>
         </div>
         <div className="flex justify-between items-center">
