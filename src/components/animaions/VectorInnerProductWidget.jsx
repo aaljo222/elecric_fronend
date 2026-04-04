@@ -97,9 +97,17 @@ const VectorInnerProductWidget = () => {
     setDragging(null);
   };
 
+  // ✅ 수정된 코드 (VectorInnerProductWidget.jsx 내부)
   useEffect(() => {
-    window.addEventListener("pointerup", handlePointerUp);
-    return () => window.removeEventListener("pointerup", handlePointerUp);
+    const onUp = () => setDragging(null);
+    // pointerup 대신 mouseup과 touchend를 모두 지원
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchend", onUp);
+
+    return () => {
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchend", onUp);
+    };
   }, []);
 
   // --- 5. 렌더링 헬퍼 ---
