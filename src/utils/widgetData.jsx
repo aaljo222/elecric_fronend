@@ -1,3 +1,13 @@
+import AmpereLawWidget from "@/components/animaions/AmpereLawWidget";
+import CoulombsLaw3DPage from "@/components/animaions/CoulombsLaw3DPage";
+import DcRectificationWidget from "@/components/animaions/DcRectificationWidget";
+import Equipotential3DWidget from "@/components/animaions/Equipotential3DWidget";
+import InteractiveUnitCircle from "@/components/animaions/InteractiveUnitCircle";
+import ParabolaIntersection from "@/components/animaions/ParabolaIntersection";
+import ParallelResistanceWidget from "@/components/animaions/ParallelResistanceWidget";
+import RotatingMagneticFieldWidget from "@/components/animaions/RotatingMagneticFieldWidget";
+import YDeltaConverterWidget from "@/components/animaions/YDeltaConverterWidget";
+
 const WIDGET_MAP = {
   trig_circle: InteractiveUnitCircle, // 예: InteractiveUnitCircle
   ohms_law: ParallelResistanceWidget, // 👈 null 대신 추가!
