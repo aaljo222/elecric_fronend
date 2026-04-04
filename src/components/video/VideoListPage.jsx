@@ -1,23 +1,25 @@
 import useCustomMove from "@/hooks/useCustomMove";
-import { ChevronLeft, ChevronRight, Lock, Play } from "lucide-react"; // ListFilter 제거
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Lock,
+  Play,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  circuitLectures,
-  emLectures,
-  mathLectures,
-  visionLectures,
-} from "@/constants/videoData";
+// 💡 실제 위젯 컴포넌트들을 여기서 import 하세요.
+// import InteractiveUnitCircle from "./widgets/InteractiveUnitCircle";
+// import OhmsLawWidget from "./widgets/OhmsLawWidget";
 
 // ==========================================
-// 1. 데이터 및 설정값
+// 1. 위젯 매핑 설정
 // ==========================================
-const ALL_LECTURES = [
-  ...mathLectures,
-  ...circuitLectures,
-  ...emLectures,
-  ...visionLectures,
-];
+const WIDGET_MAP = {
+  trig_circle: null, // 예: InteractiveUnitCircle
+  ohms_law: null, // 예: OhmsLawWidget
+};
 
 const getCategory = (lecture) => {
   if (lecture.subject?.includes("수학")) return "기초 수학";
@@ -84,22 +86,15 @@ const HeroBanner = ({ currentCategoryData, total }) => (
         <span className="bg-white/20 px-4 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
           총 {total}개의 강의
         </span>
-        <span className="bg-[#d7e2ff] text-[#003f87] px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
-          인기 코스
-        </span>
       </div>
     </div>
   </div>
 );
 
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
-  console.log("video:", video);
-  let finalThumbnail =
+  const finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image";
-  if (video.thumbnail && video.thumbnailTime) {
-    finalThumbnail = `${video.thumbnail}?time=${video.thumbnailTime}`;
-  }
 
   return (
     <article
@@ -160,9 +155,6 @@ const LockedVideoCard = ({ locked }) => (
   <article className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 opacity-60">
     <div className="relative h-56 bg-gray-200 flex items-center justify-center">
       <Lock className="text-gray-400" size={48} />
-      <div className="absolute top-4 left-4 bg-gray-500 text-white px-3 py-1 text-xs font-bold rounded-lg tracking-wider uppercase">
-        {locked.category || "STEP"}
-      </div>
     </div>
     <div className="p-8 flex flex-col flex-grow">
       <span className="text-gray-500 font-bold text-xs uppercase tracking-widest mb-2 block">
@@ -171,9 +163,6 @@ const LockedVideoCard = ({ locked }) => (
       <h3 className="text-2xl font-bold text-gray-900 mb-3 leading-tight line-clamp-2 min-h-[3.5rem]">
         {locked.title}
       </h3>
-      <p className="text-gray-500 text-base mb-8 font-medium line-clamp-2">
-        {locked.description || "준비 중인 강의입니다."}
-      </p>
       <div className="mt-auto">
         <button
           disabled
@@ -189,7 +178,6 @@ const LockedVideoCard = ({ locked }) => (
 const DetailModal = ({ selectedVideo, onClose, onRead }) => {
   if (!selectedVideo) return null;
 
-  // ⭐ 핵심: 현재 선택된 비디오의 widgetType에 맞는 컴포넌트를 창고(WIDGET_MAP)에서 꺼내옵니다.
   const ActiveWidgetComponent = selectedVideo.widgetType
     ? WIDGET_MAP[selectedVideo.widgetType]
     : null;
@@ -200,17 +188,27 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 모달 헤더 (기존과 동일) */}
         <div className="p-8 border-b border-gray-100 flex justify-between items-start shrink-0">
-          {/* ... (생략) ... */}
+          <div>
+            <div className="bg-[#e5edff] text-[#0047a5] px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-3 inline-block">
+              강의 상세 안내
+            </div>
+            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight">
+              {selectedVideo.title}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-red-500 transition-colors p-2"
+          >
+            <X size={32} />
+          </button>
         </div>
 
-        {/* 모달 콘텐츠 영역 */}
         <div className="p-8 overflow-y-auto flex-grow flex flex-col xl:flex-row gap-8">
-          {/* 좌측: 기존 텍스트 설명 영역 */}
           <div className="flex-1 space-y-8">
             <p className="text-xl text-gray-600 leading-relaxed font-medium">
               {selectedVideo.description}
@@ -219,25 +217,34 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
               <h4 className="text-base font-bold text-[#0047a5] uppercase tracking-wider mb-4 border-b border-gray-200 pb-2">
                 강의 정보
               </h4>
-              {/* 카테고리, 과목명 등 (기존과 동일) */}
+              <div className="space-y-4 text-lg">
+                <div className="flex justify-between">
+                  <span>카테고리</span>
+                  <span className="font-bold text-gray-900">
+                    {selectedVideo.category || "미분류"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>과목명</span>
+                  <span className="font-bold text-gray-900">
+                    {selectedVideo.subject || "-"}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* ⭐ 우측: 인터랙티브 실습 위젯 렌더링 영역 */}
           {ActiveWidgetComponent && (
             <div className="flex-1 border-t xl:border-t-0 xl:border-l border-gray-100 pt-8 xl:pt-0 xl:pl-8">
               <div className="mb-4 inline-block bg-blue-100 text-[#0047a5] px-3 py-1 rounded text-sm font-bold uppercase tracking-widest">
-                인터랙티브 실습 공간
+                인터랙티브 실습
               </div>
-
-              {/* 꺼내온 위젯 컴포넌트를 여기에 렌더링합니다! */}
               <ActiveWidgetComponent />
             </div>
           )}
         </div>
 
-        {/* 하단 버튼 (기존과 동일) */}
-        <div className="p-8 bg-gray-50 flex flex-col gap-4 shrink-0 rounded-b-2xl border-t border-gray-100">
+        <div className="p-8 bg-gray-50 shrink-0 rounded-b-2xl border-t border-gray-100">
           <button
             onClick={() => {
               onClose();
@@ -252,87 +259,67 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
     </div>
   );
 };
+
 // ==========================================
-// 3. 메인 컴포넌트
+// 3. 메인 페이지 컴포넌트
 // ==========================================
 export default function VideoListPage() {
   const { page, size, moveToList, moveToRead } = useCustomMove("/user/videos");
-
   const [activeTab, setActiveTab] = useState("전체");
   const [selectedVideo, setSelectedVideo] = useState(null);
-
-  // ✅ 1. 서버 데이터를 담을 상태와 로딩 상태 추가
   const [videoList, setVideoList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ 2. 백엔드 API 호출 부분 수정
   useEffect(() => {
     const fetchVideos = async () => {
       try {
         const response = await fetch("/api/video/list");
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-
+        if (!response.ok) throw new Error("데이터 로딩 실패");
         const data = await response.json();
 
-        if (data && data.length > 0) {
-          const mappedData = data.map((v, index) => ({
-            id: index,
-            title: v.title || "제목 없음",
-            videoUrls: v.video_url ? [v.video_url] : [],
-            subject: "영상 강의",
-            description: v.message || "백엔드에서 불러온 영상입니다.",
-            createdAt: v.created_at || "2026-01-01",
-
-            // ⭐ 여기에 DB에서 받아온 개별 Manim 영상 경로를 매핑합니다.
-            // DB에 없다면 규칙을 만들어(예: 강의 ID 기반) 경로를 지정할 수 있습니다.
-            manimUrl: v.manim_url || `/videos/manim/lecture_${index}.webm`,
-          }));
-          setVideoList(mappedData);
-        } else {
-          throw new Error("백엔드에 영상 데이터가 없습니다.");
-        }
+        const mappedData = data.map((v) => ({
+          id: v.id,
+          title: v.title || "제목 없음",
+          videoUrl: v.video_url || "",
+          subject: v.subject || "영상 강의",
+          description: v.message || "설명이 없습니다.",
+          widgetType: v.widget_type || null,
+        }));
+        setVideoList(mappedData);
       } catch (error) {
-        console.warn("⚠️ 더미 데이터로 전환합니다:", error.message);
-        // 더미 데이터 사용 시에도 manimUrl 필드를 추가해 주어야 합니다.
-        setVideoList(ALL_LECTURES);
+        console.error("Error:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchVideos();
   }, []);
 
-  // ✅ 3. 기존 ALL_LECTURES 대신 동적인 videoList 상태를 바라보도록 수정
   const { activeVideos, lockedVideos } = useMemo(() => {
     let result = videoList.map((v) => ({
       ...v,
       category: getCategory(v),
-      duration: v.duration || "10:00",
-      createdAt: v.createdAt || "2026-01-01",
-      isLocked:
-        !v.videoUrls || v.videoUrls.length === 0 || v.videoUrls[0] === "",
+      isLocked: !v.videoUrl || v.videoUrl === "",
     }));
-
-    if (activeTab !== "전체") {
+    if (activeTab !== "전체")
       result = result.filter((video) => video.category === activeTab);
-    }
-
     return {
       activeVideos: result.filter((v) => !v.isLocked),
       lockedVideos: result.filter((v) => v.isLocked),
     };
-  }, [activeTab, videoList]); // videoList가 변경될 때마다 재계산
+  }, [activeTab, videoList]);
 
   const total = activeVideos.length;
   const totalPages = Math.ceil(total / size) || 1;
   const start = (page - 1) * size;
   const currentList = activeVideos.slice(start, start + size);
-  const handleTabClick = (categoryId) => {
-    setActiveTab(categoryId);
-    moveToList({ page: 1, size });
-  };
+
+  if (isLoading)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="animate-spin text-[#0047a5]" size={48} />
+      </div>
+    );
 
   return (
     <main className="mx-auto px-8 py-12 max-w-7xl w-[85%] font-body relative">
@@ -341,17 +328,15 @@ export default function VideoListPage() {
         total={total}
       />
 
-      {/* 탭 컨트롤 (정렬 필터 제거됨) */}
       <div className="flex flex-wrap items-center justify-start gap-4 mb-10">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => handleTabClick(cat.id)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-sm ${
-              activeTab === cat.id
-                ? "bg-[#0047a5] text-white shadow-md scale-105"
-                : "bg-[#f3f4f6] text-gray-700 hover:bg-gray-200"
-            }`}
+            onClick={() => {
+              setActiveTab(cat.id);
+              moveToList({ page: 1, size });
+            }}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-sm ${activeTab === cat.id ? "bg-[#0047a5] text-white scale-105" : "bg-[#f3f4f6] text-gray-700 hover:bg-gray-200"}`}
           >
             <span className="text-xl">{cat.icon}</span>
             <span>{cat.label}</span>
@@ -359,14 +344,10 @@ export default function VideoListPage() {
         ))}
       </div>
 
-      {/* 안내 텍스트 & Manim 애니메이션 컨테이너 (이 부분이 수정되었습니다) */}
       <div className="mb-6 flex justify-between items-end">
-        {/* 좌측: 기존 텍스트 */}
         <div className="text-gray-500 font-medium">
           총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
         </div>
-
-        {/* 우측: Manim 영상 영역 */}
         <div className="w-40 md:w-56 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
           <video
             autoPlay
@@ -375,56 +356,40 @@ export default function VideoListPage() {
             playsInline
             className="w-full h-auto object-cover"
           >
-            {/* Manim 렌더링 결과물 경로 지정 */}
             <source src="/videos/manim/list_intro.webm" type="video/webm" />
-            <source src="/videos/manim/list_intro.mp4" type="video/mp4" />
           </video>
         </div>
       </div>
 
-      {/* 비디오 리스트 */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
-        {currentList.length > 0 ? (
-          currentList.map((video) => (
-            <ActiveVideoCard
-              key={video.id}
-              video={video}
-              onRead={moveToRead}
-              onOpenModal={setSelectedVideo}
-            />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-20 text-gray-500 text-lg font-medium">
-            시청 가능한 강의가 없습니다. 😢
-          </div>
-        )}
-
-        {/* 잠금 비디오 (마지막 페이지이거나 데이터 없을 때 렌더링) */}
-        {(page === totalPages || currentList.length === 0) &&
+        {currentList.map((video) => (
+          <ActiveVideoCard
+            key={video.id}
+            video={video}
+            onRead={moveToRead}
+            onOpenModal={setSelectedVideo}
+          />
+        ))}
+        {page === totalPages &&
           lockedVideos.map((locked) => (
             <LockedVideoCard key={locked.id} locked={locked} />
           ))}
       </section>
 
-      {/* 페이지네이션 */}
       {total > 0 && (
         <nav className="flex justify-center items-center gap-2">
           <button
             onClick={() => moveToList({ page: page - 1, size })}
             disabled={page <= 1}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500"
+            className="p-2 disabled:opacity-30"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft />
           </button>
           {Array.from({ length: totalPages }).map((_, i) => (
             <button
               key={i + 1}
               onClick={() => moveToList({ page: i + 1, size })}
-              className={`w-10 h-10 rounded-xl font-bold transition-all ${
-                page === i + 1
-                  ? "bg-[#0047a5] text-white shadow-lg scale-110"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`w-10 h-10 rounded-xl font-bold ${page === i + 1 ? "bg-[#0047a5] text-white" : "text-gray-600"}`}
             >
               {i + 1}
             </button>
@@ -432,14 +397,13 @@ export default function VideoListPage() {
           <button
             onClick={() => moveToList({ page: page + 1, size })}
             disabled={page >= totalPages}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500"
+            className="p-2 disabled:opacity-30"
           >
-            <ChevronRight size={24} />
+            <ChevronRight />
           </button>
         </nav>
       )}
 
-      {/* 모달 */}
       <DetailModal
         selectedVideo={selectedVideo}
         onClose={() => setSelectedVideo(null)}
