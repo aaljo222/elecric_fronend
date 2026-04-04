@@ -96,7 +96,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
   const finalThumbnail =
     video.thumbnail ||
     "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
-
+  console.log("active video", video);
   return (
     <article
       className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100"
