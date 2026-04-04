@@ -1,6 +1,6 @@
 import "katex/dist/katex.min.css";
 import { useMemo, useState } from "react";
-import { BlockMath } from "react-katex";
+import { BlockMath, InlineMath } from "react-katex";
 
 const ParallelResistanceWidget = () => {
   const [resistorCount, setResistorCount] = useState(3);
@@ -334,7 +334,7 @@ const ParallelResistanceWidget = () => {
           <div className="bg-[#0047a5] p-5 rounded-2xl text-white shadow-md grid grid-cols-2 gap-4">
             <div className="text-center border-r border-white/20 pr-2">
               <p className="text-[12px] font-bold opacity-80 uppercase mb-1">
-                최종 합성저항 ($R_{eq}$)
+                최종 합성저항 (<InlineMath math="R_{eq}" />)
               </p>
               {/* ✅ 여기서 eq 대신 totalReq를 사용합니다! */}
               <span className="text-3xl font-black">
@@ -344,7 +344,7 @@ const ParallelResistanceWidget = () => {
             </div>
             <div className="text-center pl-2">
               <p className="text-[12px] font-bold opacity-80 uppercase mb-1">
-                회로 전체 전류 ($I_{total}$)
+                회로 전체 전류 (<InlineMath math="I_{total}" />)
               </p>
               <span className="text-3xl font-black text-yellow-300">
                 {totalCurrent.toFixed(2)}{" "}
