@@ -32,14 +32,14 @@ const ParallelResistanceWidget = () => {
       .join(" + ");
     const intermediateSum = calculatedInvReq.toFixed(4);
 
-    const formula = `
-      \\begin{aligned}
-      R_{eq} &= \\frac{1}{${symbolicPart}} \\\\
-      &= \\frac{1}{${numericPart}} \\\\
-      &= \\frac{1}{${intermediateSum}} \\\\
-      &= ${Req.toFixed(2)} \\, \\Omega
-      \\end{aligned}
-    `;
+    const formula = [
+      "\\begin{aligned}",
+      "R_{eq} &= \\frac{1}{" + symbolicPart + "} \\\\",
+      "&= \\frac{1}{" + numericPart + "} \\\\",
+      "&= \\frac{1}{" + intermediateSum + "} \\\\",
+      "&= " + Req.toFixed(2) + " \\, \\Omega",
+      "\\end{aligned}",
+    ].join("\n");
 
     return {
       totalReq: Req,
