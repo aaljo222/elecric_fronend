@@ -18,6 +18,7 @@ import AmpereLawWidget from "../animaions/AmpereLawWidget";
 import DcRectificationWidget from "../animaions/DcRectificationWidget";
 import Equipotential3DWidget from "../animaions/Equipotential3DWidget";
 import FlemingLeftHandWidget from "../animaions/FlemingLeftHandWidget";
+import ParabolarIntersection from "../animaions/ParabolaIntersection";
 import RotatingMagneticFieldWidget from "../animaions/RotatingMagneticFieldWidget";
 // ==========================================
 // 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
@@ -33,6 +34,7 @@ const WIDGET_MAP = {
   dc_rectifier: DcRectificationWidget, // DC 정류 (기기)
   equipotential: Equipotential3DWidget, // 등전위면 (전자기)
   ampere_law: AmpereLawWidget, // 앙페르/솔레노이드 (전자기)
+  parabola_intersection: ParabolarIntersection,
 };
 
 const getCategory = (lecture) => {
