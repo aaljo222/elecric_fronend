@@ -9,7 +9,7 @@ import QnaCard from "@/components/quiz/QnaCard";
 import VideoPlayer from "@/components/video/VideoPlayer";
 
 import RecommendedVideo from "@/components/video/RecommendedVideo";
-import VideoPlayerList from "@/components/video/VideoPlayList";
+import VideoPlayerList from "@/components/video/VideoListPage";
 import { MoveLeft } from "lucide-react";
 
 export default function AiVideoWatch() {
