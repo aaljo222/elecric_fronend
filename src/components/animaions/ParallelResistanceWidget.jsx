@@ -1,16 +1,18 @@
+import "katex/dist/katex.min.css"; // (참고: 상위 컴포넌트나 index.css에 이미 있다면 생략 가능)
 import { useMemo, useState } from "react";
+import { BlockMath } from "react-katex"; // 👈 수식 렌더링을 위해 추가
 
 const ParallelResistanceWidget = () => {
-  // ✅ 모든 상태(State)는 반드시 함수 안에서 선언되어야 합니다.
   const [resistorCount, setResistorCount] = useState(2);
   const [voltage, setVoltage] = useState(12);
   const [resistances, setResistances] = useState([10, 20, 30, 40]);
-  const [selectedIndex, setSelectedIndex] = useState(null); // 저항 선택 상태
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
-  // 합성저항 및 전류 계산 로직
-  const { totalReq, currents, totalCurrent } = useMemo(() => {
+  // 계산 및 동적 LaTeX 수식 생성
+  const { totalReq, currents, totalCurrent, latexFormula } = useMemo(() => {
     const activeResistances = resistances.slice(0, resistorCount);
 
+    // 1. 계산 로직
     const calculatedInvReq = activeResistances.reduce((acc, R) => {
       const val = Number(R) <= 0.1 ? 0.1 : Number(R);
       return acc + 1 / val;
@@ -25,7 +27,25 @@ const ParallelResistanceWidget = () => {
 
     const totalI = Req > 0 ? voltage / Req : 0;
 
-    return { totalReq: Req, currents: branchCurrents, totalCurrent: totalI };
+    // 💡 2. 동적 수식 문자열 (LaTeX) 생성 ⭐
+    // 예: \frac{1}{R_1} + \frac{1}{R_2}
+    const symbolicPart = activeResistances
+      .map((_, i) => `\\frac{1}{R_{${i + 1}}}`)
+      .join(" + ");
+    // 예: \frac{1}{10} + \frac{1}{20}
+    const numericPart = activeResistances
+      .map((R) => `\\frac{1}{${R}}`)
+      .join(" + ");
+
+    // 최종 완성된 LaTeX 수식
+    const formula = `R_{eq} = \\frac{1}{${symbolicPart}} = \\frac{1}{${numericPart}} = ${Req.toFixed(2)} \\, \\Omega`;
+
+    return {
+      totalReq: Req,
+      currents: branchCurrents,
+      totalCurrent: totalI,
+      latexFormula: formula, // 수식 상태 반환
+    };
   }, [resistorCount, voltage, resistances]);
 
   const handleResChange = (idx, value) => {
@@ -41,7 +61,7 @@ const ParallelResistanceWidget = () => {
         인터랙티브 실습
       </h5>
 
-      {/* 1. 상단 컨트롤 패널 */}
+      {/* 1. 컨트롤 패널 (생략: 기존과 동일) */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold text-gray-500 uppercase">
@@ -55,7 +75,7 @@ const ParallelResistanceWidget = () => {
                 className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
                   resistorCount === num
                     ? "bg-[#0047a5] text-white shadow-md"
-                    : "bg-white text-gray-400 border border-gray-200"
+                    : "bg-white text-gray-400 border border-gray-100"
                 }`}
               >
                 {num}개
@@ -82,8 +102,8 @@ const ParallelResistanceWidget = () => {
         </div>
       </div>
 
-      {/* 2. 회로 시각화 (SVG) */}
-      <div className="flex justify-center mb-8 relative bg-white p-6 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto min-h-[300px]">
+      {/* 2. 회로 시각화 및 드로잉 (생략: 기존과 동일) */}
+      <div className="flex justify-center mb-6 relative bg-white p-6 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto min-h-[300px]">
         <svg width="400" height="250" className="overflow-visible">
           {/* 전압원 */}
           <g transform="translate(40, 100)">
@@ -223,26 +243,8 @@ const ParallelResistanceWidget = () => {
               </tspan>
             </text>
           </g>
-          <g transform="translate(360, 130)">
-            <rect
-              x="0"
-              y="0"
-              width="90"
-              height="25"
-              rx="5"
-              fill="#f8fafc"
-              stroke="#e2e8f0"
-            />
-            <text x="10" y="17" className="text-[10px] font-bold text-gray-500">
-              Req:{" "}
-              <tspan className="text-xs font-black text-[#0047a5]">
-                {totalReq.toFixed(2)}Ω
-              </tspan>
-            </text>
-          </g>
         </svg>
 
-        {/* 3. 저항값 조절 슬라이더 (저항 클릭 시 등장) */}
         {selectedIndex !== null && selectedIndex < resistorCount && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/95 p-4 rounded-xl border border-blue-200 shadow-2xl backdrop-blur-sm z-10 w-48 text-center animate-fade-in">
             <p className="text-xs font-bold text-blue-700 mb-1">
@@ -263,10 +265,22 @@ const ParallelResistanceWidget = () => {
               onClick={() => setSelectedIndex(null)}
               className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
             >
-              <span className="text-lg">✕</span>
+              ✕
             </button>
           </div>
         )}
+      </div>
+
+      {/* 💡 3. 실시간 합성저항 수식 표시 영역 (새로 추가됨) ⭐ */}
+      <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6 shadow-sm overflow-x-auto text-center">
+        <p className="text-xs font-bold text-[#0047a5] mb-2 flex justify-center items-center gap-1">
+          <span className="material-symbols-outlined text-sm">calculate</span>
+          실시간 합성저항 계산 과정
+        </p>
+        <div className="text-gray-900 pointer-events-none">
+          {/* BlockMath를 통해 LaTeX 수식 렌더링 */}
+          <BlockMath math={latexFormula} />
+        </div>
       </div>
 
       {/* 4. 결과 요약 리포트 */}
