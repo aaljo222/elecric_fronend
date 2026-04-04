@@ -1,9 +1,10 @@
 import { lazy } from "react";
 
 const WIDGET_MAP = {
-  trig_circle: lazy(
-    () => import("@/components/animaions/InteractiveUnitCircle"),
-  ),
+  trig_circle: null,
+  // lazy(
+  //   () => import("@/components/animaions/InteractiveUnitCircle"),
+  // )
   ohms_law: lazy(
     () => import("@/components/animaions/ParallelResistanceWidget"),
   ),
