@@ -105,6 +105,7 @@ export default function AiVideoWatch() {
         setLoading(true);
         // 1. 영상 정보
         const resUrl = await apiClient.get(`/api/video/url/${id}`);
+        console.log("DB에서 가져온 영상 데이터:", resUrl.data); // 👈 여기서 video_url이 잘 오는지 확인!
         const playableUrl =
           resUrl.data.video_url?.replace("/watch", "/iframe") || "";
         setVideoInfo({ ...resUrl.data, video_url: playableUrl });
