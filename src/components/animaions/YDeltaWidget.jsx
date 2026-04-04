@@ -121,7 +121,7 @@ const YDeltaConverterWidget = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-50 rounded-xl shadow-inner overflow-hidden font-sans">
+    <div className="w-full  flex flex-col bg-gray-50 rounded-xl shadow-inner overflow-hidden font-sans">
       {/* 헤더 영역 */}
       <div className="bg-[#0047a5] text-white p-6 flex justify-between items-center shrink-0">
         <div>

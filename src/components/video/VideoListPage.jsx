@@ -252,7 +252,7 @@ const DetailModal = ({ selectedVideo, onClose, onRead }) => {
         {/* 💡 화면 분할 로직 개선: 위젯이 있으면 위젯만 100% 꽉 차게 렌더링 */}
         <div className="p-6 overflow-y-auto flex-grow flex flex-col bg-gray-50/50">
           {ActiveWidgetComponent ? (
-            <div className="w-full h-full">
+            <div className="w-full">
               <ActiveWidgetComponent />
             </div>
           ) : (
