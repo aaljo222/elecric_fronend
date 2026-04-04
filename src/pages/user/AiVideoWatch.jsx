@@ -51,24 +51,23 @@ export default function AiVideoWatch() {
   };
 
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        // 1. 영상 주소 불러오기
         const res = await apiClient.get(`/api/video/url/${id}`);
-        setVideoInfo({ video_url: res.data.video_url, title: res.data.title });
-
-        // 2. 💡 [추가] 영상 정보를 가져온 뒤 즉시 첫 번째 퀴즈도 불러옵니다.
-        await fetchRandomProblem();
-      } catch (error) {
-        console.error("데이터 로딩 실패:", error);
+        // Cloudflare watch 링크 -> iframe 링크 변환
+        const playableUrl =
+          res.data.video_url?.replace("/watch", "/iframe") || "";
+        setVideoInfo({ ...res.data, video_url: playableUrl });
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     };
-
-    if (id) fetchInitialData();
+    loadData();
   }, [id]);
+
   // 💡 로딩 중일 때는 플레이어 대신 스켈레톤이나 로딩 바를 보여줍니다.
   if (loading)
     return (

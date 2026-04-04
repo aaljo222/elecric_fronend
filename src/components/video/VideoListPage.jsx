@@ -265,25 +265,13 @@ export default function VideoListPage() {
   const [videoList, setVideoList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 백엔드 API 호출 및 데이터 매핑
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch("/api/video/list");
-        if (!response.ok) throw new Error("데이터 로딩 실패");
-        const data = await response.json();
-
-        const mappedData = data.map((v) => ({
-          id: v.id, // 파이썬 백엔드에서 l.lecture_id AS id 로 보내줘야 함
-          title: v.title || "제목 없음",
-          videoUrl: v.video_url || "",
-          subject: v.subject || "영상 강의",
-          description: v.message || "설명이 없습니다.",
-          widgetType: v.widget_type || null,
-        }));
-        setVideoList(mappedData);
-      } catch (error) {
-        console.error("Error fetching video list:", error);
+        const res = await apiClient.get("/api/video/list");
+        setVideoList(res.data);
+      } catch (e) {
+        console.error(e);
       } finally {
         setIsLoading(false);
       }
@@ -291,12 +279,15 @@ export default function VideoListPage() {
     fetchVideos();
   }, []);
 
-  // 탭 필터링 및 활성/잠금 강의 구분
   const { activeVideos, lockedVideos } = useMemo(() => {
     let result = videoList.map((v) => ({
       ...v,
-      category: getCategory(v),
-      isLocked: !v.videoUrl || v.videoUrl === "",
+      isLocked: !v.video_url,
+      category: v.subject?.includes("수학")
+        ? "기초 수학"
+        : v.subject?.includes("회로")
+          ? "회로이론"
+          : "전체",
     }));
     if (activeTab !== "전체")
       result = result.filter((v) => v.category === activeTab);
@@ -305,6 +296,8 @@ export default function VideoListPage() {
       lockedVideos: result.filter((v) => v.isLocked),
     };
   }, [activeTab, videoList]);
+
+  //  const currentList = activeVideos.slice((page - 1) * size, page * size);
 
   const total = activeVideos.length;
   const totalPages = Math.ceil(total / size) || 1;
