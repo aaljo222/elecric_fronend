@@ -339,7 +339,7 @@ const ParallelResistanceWidget = () => {
               {/* ✅ 여기서 eq 대신 totalReq를 사용합니다! */}
               <span className="text-3xl font-black">
                 {totalReq.toFixed(2)}{" "}
-                <tspan className="text-base opacity-60">Ω</tspan>
+                <span className="text-base opacity-60">Ω</span>
               </span>
             </div>
             <div className="text-center pl-2">
@@ -348,7 +348,7 @@ const ParallelResistanceWidget = () => {
               </p>
               <span className="text-3xl font-black text-yellow-300">
                 {totalCurrent.toFixed(2)}{" "}
-                <tspan className="text-base opacity-60">A</tspan>
+                <span className="text-base opacity-60">A</span>
               </span>
             </div>
           </div>
