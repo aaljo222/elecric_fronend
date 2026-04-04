@@ -1,3 +1,6 @@
+// 🌟 1. 이 줄이 없어서 에러가 발생했습니다. 필수로 추가해주세요!
+import { Play } from "lucide-react";
+
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
   console.log("ActiveVideoCard ,video:", video);
   const finalThumbnail =
@@ -21,7 +24,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
           {video.category || "STEP"}
         </div>
 
-        {/* 💡 2. 오른쪽 상단: 인터랙티브 위젯 버튼 (이 부분이 빠져있었습니다!) ⭐ */}
+        {/* 2. 오른쪽 상단: 인터랙티브 위젯 버튼 */}
         {video.widgetType && (
           <button
             onClick={(e) => {
@@ -54,6 +57,7 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
         {/* 3. 중앙: 호버 시 재생 아이콘 */}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
+            {/* 🌟 바로 여기서 에러가 났던 것입니다 */}
             <Play className="text-[#0047a5] fill-current ml-1" size={28} />
           </div>
         </div>
@@ -93,4 +97,5 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
     </article>
   );
 };
+
 export default ActiveVideoCard;
