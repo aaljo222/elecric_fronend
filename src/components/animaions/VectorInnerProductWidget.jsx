@@ -26,7 +26,7 @@ const VectorInnerProductWidget = () => {
     y: (CENTER - svgY) / SCALE,
   });
 
-  // --- 3. 실시간 수학 연산 ---
+  // --- 3. 실시간 수학 연산 (💡 오류 해결 부분!) ---
   const { dot, magU, magV, proj, angle, isOrthogonal } = useMemo(() => {
     const dotProduct = u.x * v.x + u.y * v.y;
     const magnitudeU = Math.sqrt(u.x ** 2 + u.y ** 2);
@@ -41,13 +41,16 @@ const VectorInnerProductWidget = () => {
       projY = scalar * v.y;
     }
 
-    // 각도 계산 (cos^-1)
+    // 각도 계산 (cos^-1) - 💡 안전한 처리
     let theta = 0;
     if (magnitudeU > 0 && magnitudeV > 0) {
       let cosTheta = dotProduct / (magnitudeU * magnitudeV);
-      // 부동소수점 오차 보정 (-1 ~ 1 사이로 클램핑)
-      cosTheta = Math.max(-1, Math.min(1, cosTheta));
+      // 부동소수점 오차 방지: -1.0 ~ 1.0 사이로 강제 고정
+      if (cosTheta > 1) cosTheta = 1;
+      if (cosTheta < -1) cosTheta = -1;
       theta = (Math.acos(cosTheta) * 180) / Math.PI;
+    } else {
+      theta = 0; // 한 벡터의 길이가 0일 경우 안전하게 0으로 처리
     }
 
     return {
@@ -55,8 +58,8 @@ const VectorInnerProductWidget = () => {
       magU: magnitudeU,
       magV: magnitudeV,
       proj: { x: projX, y: projY },
-      angle: theta,
-      isOrthogonal: dotProduct === 0 && magnitudeU > 0 && magnitudeV > 0, // 내적이 0이면 수직
+      angle: isNaN(theta) ? 0 : theta, // NaN 방어 로직
+      isOrthogonal: dotProduct === 0 && magnitudeU > 0 && magnitudeV > 0,
     };
   }, [u, v]);
 
@@ -69,21 +72,26 @@ const VectorInnerProductWidget = () => {
   const handlePointerMove = (e) => {
     if (!dragging || !svgRef.current) return;
 
-    // SVG 내에서의 마우스 좌표 계산
     const rect = svgRef.current.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * SVG_SIZE;
-    const svgY = ((e.clientY - rect.top) / rect.height) * SVG_SIZE;
+    // 터치 이벤트 지원 추가 (모바일 대응)
+    let clientX = e.clientX;
+    let clientY = e.clientY;
 
-    // 수학 좌표로 변환 후 정수로 스냅(반올림)
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+
+    const svgX = ((clientX - rect.left) / rect.width) * SVG_SIZE;
+    const svgY = ((clientY - rect.top) / rect.height) * SVG_SIZE;
+
     const { x, y } = svgToMath(svgX, svgY);
     let snappedX = Math.round(x);
     let snappedY = Math.round(y);
 
-    // 그리드(-10 ~ 10) 밖으로 나가지 못하게 제한
     snappedX = Math.max(-10, Math.min(10, snappedX));
     snappedY = Math.max(-10, Math.min(10, snappedY));
 
-    // 영벡터(0,0) 방지
     if (snappedX === 0 && snappedY === 0) {
       snappedX = dragging === "u" ? 0 : 1;
       snappedY = dragging === "u" ? 1 : 0;
@@ -97,16 +105,13 @@ const VectorInnerProductWidget = () => {
     setDragging(null);
   };
 
-  // ✅ 수정된 코드 (VectorInnerProductWidget.jsx 내부)
   useEffect(() => {
-    const onUp = () => setDragging(null);
-    // pointerup 대신 mouseup과 touchend를 모두 지원
-    window.addEventListener("mouseup", onUp);
-    window.addEventListener("touchend", onUp);
-
+    // 마우스 및 터치 이벤트 모두 지원하도록 수정
+    window.addEventListener("mouseup", handlePointerUp);
+    window.addEventListener("touchend", handlePointerUp);
     return () => {
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchend", onUp);
+      window.removeEventListener("mouseup", handlePointerUp);
+      window.removeEventListener("touchend", handlePointerUp);
     };
   }, []);
 
@@ -116,7 +121,6 @@ const VectorInnerProductWidget = () => {
   const svgProj = mathToSvg(proj.x, proj.y);
   const svgOrigin = mathToSvg(0, 0);
 
-  // 그리드 선 생성
   const gridLines = [];
   for (let i = -10; i <= 10; i++) {
     const pos = CENTER + i * SCALE;
@@ -155,13 +159,14 @@ const VectorInnerProductWidget = () => {
           ref={svgRef}
           viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
           className="w-full h-auto bg-slate-50 rounded-2xl cursor-crosshair border border-slate-200"
-          onPointerMove={handlePointerMove}
-          style={{ touchAction: "none" }} // 모바일 스크롤 방지
+          onMouseMove={handlePointerMove}
+          onTouchMove={handlePointerMove}
+          style={{ touchAction: "none" }}
         >
-          {/* 1. 그리드 및 축 */}
+          {/* 그리드 및 축 */}
           <g>{gridLines}</g>
 
-          {/* 2. 직각(90도) 표시 심볼 (내적이 0일 때) */}
+          {/* 직각(90도) 표시 심볼 */}
           {isOrthogonal && (
             <g>
               <rect
@@ -177,7 +182,7 @@ const VectorInnerProductWidget = () => {
             </g>
           )}
 
-          {/* 3. 투영선 (Projection Line - Dashed) */}
+          {/* 투영선 (Dashed) */}
           <line
             x1={svgU.x}
             y1={svgU.y}
@@ -188,7 +193,7 @@ const VectorInnerProductWidget = () => {
             strokeDasharray="5,5"
           />
 
-          {/* 4. 벡터 V (빨간색 기준 축) */}
+          {/* 벡터 V (빨간색) */}
           <line
             x1={svgOrigin.x}
             y1={svgOrigin.y}
@@ -203,7 +208,7 @@ const VectorInnerProductWidget = () => {
             transform={`translate(${svgV.x}, ${svgV.y}) rotate(${Math.atan2(svgOrigin.y - svgV.y, svgV.x - svgOrigin.x) * (180 / Math.PI)})`}
           />
 
-          {/* 5. 투영된 벡터 (초록색 그림자) */}
+          {/* 투영된 벡터 (초록색) */}
           {dot !== 0 && (
             <line
               x1={svgOrigin.x}
@@ -217,7 +222,7 @@ const VectorInnerProductWidget = () => {
             />
           )}
 
-          {/* 6. 벡터 U (파란색 움직이는 축) */}
+          {/* 벡터 U (파란색) */}
           <line
             x1={svgOrigin.x}
             y1={svgOrigin.y}
@@ -232,14 +237,15 @@ const VectorInnerProductWidget = () => {
             transform={`translate(${svgU.x}, ${svgU.y}) rotate(${Math.atan2(svgOrigin.y - svgU.y, svgU.x - svgOrigin.x) * (180 / Math.PI)})`}
           />
 
-          {/* 7. 드래그 핸들 (투명하고 큰 원) */}
+          {/* 드래그 핸들 */}
           <circle
             cx={svgV.x}
             cy={svgV.y}
             r="25"
             fill="transparent"
             className="cursor-grab hover:cursor-grabbing"
-            onPointerDown={(e) => handlePointerDown(e, "v")}
+            onMouseDown={(e) => handlePointerDown(e, "v")}
+            onTouchStart={(e) => handlePointerDown(e, "v")}
           />
           <circle
             cx={svgU.x}
@@ -247,10 +253,10 @@ const VectorInnerProductWidget = () => {
             r="25"
             fill="transparent"
             className="cursor-grab hover:cursor-grabbing"
-            onPointerDown={(e) => handlePointerDown(e, "u")}
+            onMouseDown={(e) => handlePointerDown(e, "u")}
+            onTouchStart={(e) => handlePointerDown(e, "u")}
           />
 
-          {/* 핸들 시각적 힌트 (작은 점) */}
           <circle
             cx={svgV.x}
             cy={svgV.y}
@@ -278,7 +284,7 @@ const VectorInnerProductWidget = () => {
           <Calculator className="text-[#0047a5]" /> 실시간 내적 계산기
         </h3>
 
-        {/* 핵심 알림 (수직일 때 강조) */}
+        {/* 핵심 알림 */}
         <div
           className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-start gap-3 ${
             isOrthogonal
