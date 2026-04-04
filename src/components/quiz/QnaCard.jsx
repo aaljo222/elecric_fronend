@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import VideoPlayer from "@/components/video/VideoPlayer"; // 기존 작성하신 VideoPlayer 경로에 맞게 수정해주세요.
+import { useState } from "react";
 
 // 개별 질문/답변 아이템 컴포넌트 (열기/닫기 상태 관리)
 const QnaItem = ({ studentId, timeAgo, question, answer, videoUrl }) => {
