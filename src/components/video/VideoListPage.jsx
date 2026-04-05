@@ -3,7 +3,6 @@ import useCustomMove from "@/hooks/useCustomMove";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-// 💡 AiVideoWatch를 참고하여 로컬 데이터 Import 추가 (Fallback 용도)
 import {
   circuitLectures,
   emLectures,
@@ -12,14 +11,17 @@ import {
 } from "@/constants/videoData";
 
 // 하위 컴포넌트들 Import
-import RandomProblemSection from "@/components/RandomProblemSection";
 import ActiveVideoCard from "./ActiveVideoCard";
 import DetailModal from "./DetailModal";
 import HeroBanner from "./HeroBanner";
 import LockedVideoCard from "./LockedVideoCard";
 
+// 💡 에러의 원인이었던 RandomProblemSection 임포트를 삭제하고,
+// 대표님이 만드신 문제 호출 함수를 직접 가져옵니다. (경로 확인 필수!)
+import { fetchRandomProblem } from "@/services/mathService";
+
 // ==========================================
-// 1. 데이터 및 카테고리 설정값
+// 1. 데이터 및 설정값
 // ==========================================
 const ALL_LECTURES = [
   ...mathLectures,
@@ -97,14 +99,17 @@ export default function VideoListPage() {
   const [videoList, setVideoList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 💡 1. 백엔드(DB) 통신 및 안전장치(Fallback) 적용!
+  // 💡 랜덤 문제를 위한 State 추가 (기존 외부 파일 로직 내장)
+  const [problemData, setProblemData] = useState(null);
+  const [isFetchingProblem, setIsFetchingProblem] = useState(false);
+
+  // 백엔드(DB)에서 영상 목록 가져오기
   useEffect(() => {
     const fetchVideos = async () => {
       try {
         setIsLoading(true);
         const res = await apiClient.get("/api/video/list");
 
-        // 백엔드 데이터(Neo4j) 매핑
         const mappedData = res.data.map((v) => ({
           id: v.id,
           title: v.title || "제목 없음",
@@ -119,12 +124,10 @@ export default function VideoListPage() {
 
         setVideoList(mappedData);
       } catch (e) {
-        // 🚨 AiVideoWatch의 방식을 참고하여, 에러 시 로컬 데이터(ALL_LECTURES)로 대체합니다!
         console.warn(
-          "⚠️ 백엔드 데이터 로딩 실패. 로컬 데이터를 대신 렌더링합니다:",
+          "⚠️ 백엔드 데이터 로딩 실패. 로컬 데이터를 대체합니다:",
           e,
         );
-
         const fallbackData = ALL_LECTURES.map((v) => ({
           id: v.id,
           title: v.title || "제목 없음",
@@ -136,7 +139,6 @@ export default function VideoListPage() {
           description: v.description || "강의 설명이 없습니다.",
           widgetType: null,
         }));
-
         setVideoList(fallbackData);
       } finally {
         setIsLoading(false);
@@ -145,7 +147,7 @@ export default function VideoListPage() {
     fetchVideos();
   }, []);
 
-  // ✅ 데이터 가공 및 필터링
+  // 데이터 가공 및 필터링
   const { activeVideos, lockedVideos } = useMemo(() => {
     let result = videoList.map((v) => ({
       ...v,
@@ -170,15 +172,32 @@ export default function VideoListPage() {
   const start = (page - 1) * size;
   const currentList = activeVideos.slice(start, start + size);
 
+  // 탭 변경 시
   const handleTabClick = (categoryId) => {
     setActiveTab(categoryId);
+    setProblemData(null); // 💡 탭을 바꾸면 기존에 띄워둔 문제 화면도 초기화합니다.
     moveToList({ page: 1, size });
   };
 
+  // 💡 랜덤 문제 가져오기 로직 (내장)
   const getRandomProblemId = () => {
     if (activeTab === "회로이론" || activeTab === "전자기학")
       return "circuit_random";
     return "math_random";
+  };
+
+  const handleFetchProblem = async () => {
+    setIsFetchingProblem(true);
+    try {
+      const currentId = getRandomProblemId();
+      const data = await fetchRandomProblem(currentId);
+      setProblemData(data);
+    } catch (error) {
+      console.error("문제 가져오기 실패:", error);
+      alert("문제를 불러오는데 실패했습니다. 백엔드 연결을 확인해주세요.");
+    } finally {
+      setIsFetchingProblem(false);
+    }
   };
 
   if (isLoading) {
@@ -199,6 +218,7 @@ export default function VideoListPage() {
         total={total}
       />
 
+      {/* 탭 컨트롤 */}
       <div className="flex flex-wrap items-center justify-start gap-4 mb-10">
         {CATEGORIES.map((cat) => (
           <button
@@ -220,6 +240,7 @@ export default function VideoListPage() {
         총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
       </div>
 
+      {/* 비디오 리스트 */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
         {currentList.length > 0 ? (
           currentList.map((video) => (
@@ -236,18 +257,20 @@ export default function VideoListPage() {
           </div>
         )}
 
+        {/* 잠금 비디오 노출 */}
         {(page === totalPages || currentList.length === 0) &&
           lockedVideos.map((locked) => (
             <LockedVideoCard key={locked.id} locked={locked} />
           ))}
       </section>
 
+      {/* 페이지네이션 */}
       {total > 0 && (
         <nav className="flex justify-center items-center gap-2">
           <button
             onClick={() => moveToList({ page: page - 1, size })}
             disabled={page <= 1}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500"
+            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 text-gray-500"
           >
             <ChevronLeft size={24} />
           </button>
@@ -267,14 +290,14 @@ export default function VideoListPage() {
           <button
             onClick={() => moveToList({ page: page + 1, size })}
             disabled={page >= totalPages}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500"
+            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 text-gray-500"
           >
             <ChevronRight size={24} />
           </button>
         </nav>
       )}
 
-      {/* 💡 하단: 랜덤 도전 영역 (탭 기반 ID 전달) */}
+      {/* 💡 하단: 오늘의 랜덤 도전 영역 (내장형) */}
       <div className="mt-20 pt-16 border-t border-gray-200">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -289,7 +312,68 @@ export default function VideoListPage() {
           </p>
         </div>
 
-        <RandomProblemSection lectureId={getRandomProblemId()} />
+        {/* 문제 생성 버튼 */}
+        <div className="w-full text-center">
+          <button
+            onClick={handleFetchProblem}
+            disabled={isFetchingProblem}
+            className={`font-bold text-lg py-4 px-10 rounded-xl shadow-md transition-all active:scale-[0.98] ${
+              isFetchingProblem
+                ? "bg-gray-400 text-white cursor-not-allowed animate-pulse"
+                : "bg-[#0047a5] text-white hover:bg-blue-800 hover:shadow-lg"
+            }`}
+          >
+            {isFetchingProblem
+              ? "⏳ AI가 맞춤형 문제를 빚어내는 중..."
+              : "🎯 새로운 실전 문제 생성하기"}
+          </button>
+        </div>
+
+        {/* 문제 출력 영역 */}
+        {problemData && (
+          <div className="mt-8 p-8 bg-[#f8faff] border border-blue-100 rounded-xl shadow-sm animate-fade-in text-left max-w-4xl mx-auto">
+            <h3 className="text-2xl font-extrabold text-[#0047a5] mb-6 flex items-center gap-2 tracking-tight">
+              📝 실전 연습 문제
+            </h3>
+
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto">
+              {problemData.problem}
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-bold text-gray-700 text-lg border-b border-blue-200 pb-3 mb-4">
+                💡 단계별 해설
+              </h4>
+              {problemData.steps?.map((step, index) => (
+                <div
+                  key={index}
+                  className="flex gap-4 items-start bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
+                >
+                  <span className="bg-[#e5edff] text-[#0047a5] font-black w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-inner">
+                    {index + 1}
+                  </span>
+                  <div className="mt-1 w-full overflow-hidden">
+                    <p className="text-gray-600 font-medium mb-3 leading-relaxed">
+                      {step.text}
+                    </p>
+                    {step.math && (
+                      <div className="bg-gray-50 p-4 rounded-lg text-[#0047a5] font-mono text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
+                        {step.math}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 p-6 bg-gradient-to-r from-[#0047a5] to-blue-700 text-white rounded-xl text-center shadow-lg">
+              <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
+                최종 정답
+              </span>
+              <span className="text-3xl font-black">{problemData.answer}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <DetailModal
