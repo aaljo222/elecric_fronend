@@ -1,12 +1,24 @@
 import apiClient from "@/api/core/apiClient";
+import katex from "katex";
 import "katex/dist/katex.min.css";
 import { Loader2, MoveLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-// 💡 방금 설치한 수식 렌더링 도구를 불러옵니다!
-import { BlockMath } from "react-katex";
 
+// 컴포넌트 내부에서
+const KatexInline = ({ math }) => {
+  const html = katex.renderToString(math, { throwOnError: false });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const KatexBlock = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
 // 컴포넌트 Import
 import QnaCard from "@/components/quiz/QnaCard";
 import RecommendedVideo from "@/components/video/RecommendedVideo";
