@@ -27,6 +27,9 @@ const WIDGET_MAP = {
   vectorInnerProject: lazy(
     () => import("@/components/animaions/VectorInnerProductWidget"),
   ),
+  derivative: lazy(
+    () => import("@/components/animaions/DerivativeWidget"), // 프론트엔드의 실제 파일 경로에 맞게 수정해주세요
+  ),
 };
 
 export default WIDGET_MAP;

@@ -205,6 +205,22 @@ export const mathLectures = [
     videoUrls: [""],
   },
   {
+    id: "c44dc0cd81fbb02320299a7bff062e4d", // Neo4j 및 백엔드와 매핑되는 클라우드플레어 해시 ID
+    subject: "기초수학", // 요청하신 대로 기초수학으로 분류
+    title: "12강. 미분의 이해", // 번호는 커리큘럼에 맞게 조정해 주세요
+    duration: "-",
+    description:
+      "함수의 순간 변화율을 구하는 미분의 기본 개념과 다항함수의 미분법을 시각적으로 학습합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/manifest/video.m3u8",
+    ],
+    useBackend: true, // 💡 FastAPI 백엔드의 무한 문제풀이(generate_derivative_problem)를 호출하기 위해 반드시 true로 설정
+  },
+  {
     id: "math_equation",
     subject: "기초수학 (중/고등)",
     title: "7강. 방정식과 부등식", // ✅ 6강 -> 7강으로 수정
