@@ -1,178 +1,272 @@
-import apiClient from "@/api/core/apiClient"; // 대표님의 API 클라이언트
+import apiClient from "@/api/core/apiClient";
+import "katex/dist/katex.min.css";
+import { Loader2, MoveLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
-const AiVideoWatch = () => {
-  // 1. URL에서 비디오 ID 가져오기 (라우터의 /videos/:id 부분)
+// 컴포넌트 Import
+import QnaCard from "@/components/quiz/QnaCard";
+import RecommendedVideo from "@/components/video/RecommendedVideo";
+import VideoInfo from "@/components/video/VideoInfo";
+import VideoPlayer from "@/components/video/VideoPlayer";
+import VideoPlayerList from "@/components/video/VideoPlayList";
+
+// 데이터 및 퀴즈 생성기 Import
+import {
+  circuitLectures,
+  emLectures,
+  mathLectures,
+  visionLectures,
+} from "@/constants/videoData";
+
+// 💡 대표님이 만드신 로컬 문제 생성기들을 모두 불러옵니다!
+import {
+  generateBasicFunctionQuiz,
+  generateCompositeFunctionQuiz,
+  generateDerivativeQuiz,
+  generateExponentQuiz,
+  generateFactorizationQuiz,
+  generateFractionQuiz,
+  generateLogarithmQuiz,
+  generateOhmQuiz,
+  generatePerfectSquareQuiz,
+} from "@/utils/quizUtils";
+
+const ALL_LECTURES = [
+  ...mathLectures,
+  ...circuitLectures,
+  ...emLectures,
+  ...visionLectures,
+];
+
+export default function AiVideoWatch() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.login?.user) || { id: "guest_123" };
 
-  // 2. 상태 관리
-  const [videoData, setVideoData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // 🌟 영상 및 탭 관련 State
+  const [videoUrl, setVideoUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("quiz"); // "quiz" | "qna"
 
-  // 3. 비디오 정보 불러오기 로직
+  // 🌟 내장형 퀴즈 관련 State
+  const [problemData, setProblemData] = useState(null);
+  const [isFetchingProblem, setIsFetchingProblem] = useState(false);
+
+  const videoData = ALL_LECTURES.find((l) => l.id === id);
+  const isVision = id.startsWith("vision_");
+
+  // 백엔드에서 영상 URL 가져오기
   useEffect(() => {
-    const fetchVideoDetail = async () => {
-      setIsLoading(true);
+    const fetchVideoData = async () => {
       try {
-        // 백엔드 터미널 로그에 찍히던 그 API입니다!
-        const response = await apiClient.get(`/api/video/url/${id}`);
-
-        // 응답 데이터 저장 (API 구조에 따라 response.data.data 일 수도 있습니다)
-        setVideoData(response.data);
+        setLoading(true);
+        const res = await apiClient.get(`/api/video/url/${id}`);
+        setVideoUrl(res.data.video_url);
       } catch (error) {
-        console.error("비디오 정보를 불러오는데 실패했습니다.", error);
+        setVideoUrl(videoData?.videoUrls?.[0] || "");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    if (id) {
-      fetchVideoDetail();
-    }
-  }, [id]);
+    // 비디오가 바뀌면 퀴즈 탭 내용 초기화
+    setProblemData(null);
 
-  // --- UI: 로딩 중 화면 ---
-  if (isLoading) {
+    if (videoData) fetchVideoData();
+    else setLoading(false);
+  }, [id, videoData]);
+
+  // 💡 로컬 퀴즈 생성 로직 (VideoListPage 방식 내장)
+  const handleFetchProblem = () => {
+    setIsFetchingProblem(true);
+
+    setTimeout(() => {
+      try {
+        let newData = null;
+
+        // 1. 현재 강의(videoData)에 전용 생성기(generator)가 연결되어 있다면 우선 사용!
+        if (videoData && videoData.generator) {
+          newData = videoData.generator();
+        }
+        // 2. 전용 생성기가 없다면, 과목(subject)에 맞춰 랜덤 출제
+        else if (videoData?.subject?.includes("회로")) {
+          newData = generateOhmQuiz();
+        } else {
+          const mathGenerators = [
+            generateFractionQuiz,
+            generateExponentQuiz,
+            generateLogarithmQuiz,
+            generateFactorizationQuiz,
+            generateBasicFunctionQuiz,
+            generateCompositeFunctionQuiz,
+            generatePerfectSquareQuiz,
+            generateDerivativeQuiz,
+          ];
+          const randomFunc =
+            mathGenerators[Math.floor(Math.random() * mathGenerators.length)];
+          newData = randomFunc();
+        }
+
+        setProblemData(newData);
+      } catch (error) {
+        console.error("문제 생성 중 오류:", error);
+        alert("문제를 생성하는 데 실패했습니다.");
+      } finally {
+        setIsFetchingProblem(false);
+      }
+    }, 500); // AI가 계산하는 듯한 0.5초 딜레이
+  };
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-[#0047a5] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <div className="text-lg font-bold text-gray-500 animate-pulse">
-          강의 영상을 준비하는 중입니다... ⏳
-        </div>
+      <div className="flex h-screen flex-col items-center justify-center gap-4">
+        <Loader2 className="animate-spin text-[#0047a5]" size={48} />
+        <p className="text-gray-500 font-bold">강의를 준비하는 중입니다...</p>
       </div>
     );
   }
 
-  // --- UI: 에러 / 데이터 없음 화면 ---
   if (!videoData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          영상을 찾을 수 없습니다 😢
-        </h2>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-6 py-3 bg-[#e5edff] text-[#0047a5] font-bold rounded-xl hover:bg-blue-100 transition-colors"
-        >
-          이전 페이지로 돌아가기
-        </button>
+      <div className="pt-32 text-center font-body text-xl font-bold">
+        영상을 찾을 수 없습니다.
       </div>
     );
   }
 
-  // Cloudflare iframe URL 조합 (DB에 video_url이 없을 경우 대비)
-  const streamUrl =
-    videoData.video_url ||
-    `https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/${videoData.videoId}/iframe`;
-
-  // --- UI: 정상 재생 화면 ---
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 animate-fade-in">
-      {/* 상단 헤더 & 뒤로가기 */}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <span className="text-[#0047a5] font-bold text-sm uppercase tracking-widest mb-2 block">
-            {videoData.subject || "심화 수학"}
-          </span>
-          <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-            {videoData.title || "강의 영상"}
-          </h1>
+    <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto font-body">
+      <button
+        onClick={() => navigate("/user/videos")}
+        className="mb-6 text-[#0047a5] font-bold flex items-center gap-1 hover:underline"
+      >
+        <MoveLeft /> 돌아가기
+      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-8">
+          {/* 영상 플레이어 영역 */}
+          <section className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 flex items-center justify-center">
+            <VideoPlayer videoUrl={videoUrl} title={videoData.title} />
+          </section>
+
+          <VideoInfo
+            title={isVision ? "🚀 AI Company 비전" : videoData.title}
+            subject={videoData.subject}
+            description={videoData.description}
+          />
+
+          {!isVision && (
+            <section className="scroll-mt-24">
+              {/* 🌟 탭 버튼 UI */}
+              <div className="flex border-b border-gray-200 mt-8 mb-2">
+                <button
+                  className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${
+                    activeTab === "quiz"
+                      ? "border-b-4 border-[#0047a5] text-[#0047a5]"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                  onClick={() => setActiveTab("quiz")}
+                >
+                  실전 퀴즈
+                </button>
+                <button
+                  className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${
+                    activeTab === "qna"
+                      ? "border-b-4 border-[#0047a5] text-[#0047a5]"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                  onClick={() => setActiveTab("qna")}
+                >
+                  질문 및 A/S
+                </button>
+              </div>
+
+              {/* 🌟 탭 상태에 따른 렌더링 */}
+              {activeTab === "quiz" ? (
+                <div className="mt-8">
+                  {/* 문제 생성 버튼 */}
+                  <div className="w-full text-center">
+                    <button
+                      onClick={handleFetchProblem}
+                      disabled={isFetchingProblem}
+                      className={`font-bold text-lg py-4 px-10 rounded-xl shadow-md transition-all active:scale-[0.98] w-full md:w-auto ${
+                        isFetchingProblem
+                          ? "bg-gray-400 text-white cursor-not-allowed animate-pulse"
+                          : "bg-[#0047a5] text-white hover:bg-blue-800 hover:shadow-lg"
+                      }`}
+                    >
+                      {isFetchingProblem
+                        ? "⏳ 맞춤형 문제를 생성하는 중..."
+                        : "🎯 해당 강의 실전 문제 풀기"}
+                    </button>
+                  </div>
+
+                  {/* 문제 출력 영역 (VideoListPage 방식 동일) */}
+                  {problemData && (
+                    <div className="mt-8 p-8 bg-[#f8faff] border border-blue-100 rounded-xl shadow-sm animate-fade-in text-left">
+                      <h3 className="text-2xl font-extrabold text-[#0047a5] mb-6 flex items-center gap-2 tracking-tight">
+                        📝 실전 연습 문제
+                      </h3>
+
+                      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto">
+                        {problemData.problem}
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-gray-700 text-lg border-b border-blue-200 pb-3 mb-4">
+                          💡 단계별 해설
+                        </h4>
+                        {problemData.steps?.map((step, index) => (
+                          <div
+                            key={index}
+                            className="flex gap-4 items-start bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
+                          >
+                            <span className="bg-[#e5edff] text-[#0047a5] font-black w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-inner">
+                              {index + 1}
+                            </span>
+                            <div className="mt-1 w-full overflow-hidden">
+                              <p className="text-gray-600 font-medium mb-3 leading-relaxed">
+                                {step.text}
+                              </p>
+                              {step.math && (
+                                <div className="bg-gray-50 p-4 rounded-lg text-[#0047a5] font-mono text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
+                                  {step.math}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-10 p-6 bg-gradient-to-r from-[#0047a5] to-blue-700 text-white rounded-xl text-center shadow-lg">
+                        <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
+                          최종 정답
+                        </span>
+                        <span className="text-3xl font-black">
+                          {problemData.answer}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <QnaCard />
+              )}
+            </section>
+          )}
         </div>
-        <button
-          onClick={() => navigate(-1)}
-          className="shrink-0 px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          목록으로
-        </button>
-      </div>
 
-      {/* 🎬 영상 플레이어 영역 (유튜브처럼 16:9 비율 완벽 유지) */}
-      <div className="relative w-full overflow-hidden rounded-2xl shadow-lg bg-black pt-[56.25%] mb-8 border border-gray-100">
-        <iframe
-          src={streamUrl}
-          className="absolute top-0 left-0 w-full h-full border-0"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-          allowFullScreen
-        ></iframe>
-      </div>
-
-      {/* 📝 하단 설명 및 실습 영역 */}
-      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-[#0047a5]"
-          >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" x2="8" y1="13" y2="13" />
-            <line x1="16" x2="8" y1="17" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          강의 핵심 요약
-        </h3>
-        <p className="text-gray-600 leading-relaxed text-lg break-keep">
-          {videoData.description ||
-            videoData.message ||
-            "이 강의에 대한 상세 설명이 제공되지 않았습니다."}
-        </p>
-
-        {/* 실습 위젯이 있는 강의일 경우 PRACTICE 버튼 활성화 (선택 사항) */}
-        {videoData.widget_type && (
-          <div className="mt-8 pt-8 border-t border-gray-100 flex justify-between items-center bg-yellow-50/50 p-6 rounded-xl border border-yellow-100">
-            <div>
-              <h4 className="font-bold text-gray-900 mb-1">
-                이론을 배웠다면 직접 만져보세요!
-              </h4>
-              <p className="text-sm text-gray-500">
-                대화형 위젯을 통해 개념을 시각적으로 이해할 수 있습니다.
-              </p>
-            </div>
-            <button className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-6 py-3 rounded-xl font-black shadow-sm transition-all hover:scale-105 active:scale-95">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="fill-current"
-              >
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-              </svg>
-              실습 도구 열기
-            </button>
+        <aside className="lg:col-span-4 space-y-8">
+          <VideoPlayerList />
+          <div>
+            <h2 className="text-xl font-bold mb-6 text-gray-900">추천 강의</h2>
+            <RecommendedVideo count={4} />
           </div>
-        )}
+        </aside>
       </div>
-    </div>
+    </main>
   );
-};
-
-export default AiVideoWatch;
+}
