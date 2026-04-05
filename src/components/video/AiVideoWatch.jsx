@@ -22,17 +22,17 @@ import {
 } from "@/constants/videoData";
 
 // ==========================================
-// 💡 커스텀 Katex 컴포넌트
+// 💡 대표님의 완벽한 커스텀 Katex 컴포넌트
 // ==========================================
 const KatexInline = ({ math }) => {
   if (!math) return null;
-  const html = katex.renderToString(math, { throwOnError: false });
+  const html = katex.renderToString(String(math), { throwOnError: false });
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 };
 
 const KatexBlock = ({ math }) => {
   if (!math) return null;
-  const html = katex.renderToString(math, {
+  const html = katex.renderToString(String(math), {
     throwOnError: false,
     displayMode: true,
   });
@@ -81,24 +81,26 @@ export default function AiVideoWatch() {
     else setLoading(false);
   }, [id, videoData]);
 
-  // 💡 문제 출제 핵심 로직 (백엔드 통신 복구!)
+  // ==========================================
+  // 💡 1. 문제 출제 핵심 로직 (백엔드 통신 완벽 복구!)
+  // ==========================================
   const handleFetchProblem = async () => {
     setIsFetchingProblem(true);
 
     try {
       let newData = null;
 
-      // 1. 프론트엔드 로컬에 전용 문제 생성기가 지정된 경우 (기초수학 앞부분)
+      // 1-1. 프론트엔드 로컬에 전용 문제 생성기가 지정된 경우 (기초수학 앞부분)
       if (videoData && videoData.generator) {
-        await new Promise((resolve) => setTimeout(resolve, 500)); // AI 연출 딜레이
+        await new Promise((resolve) => setTimeout(resolve, 500));
         newData = videoData.generator();
       }
-      // 2. 🚀 그 외 모든 강의(삼각함수, 벡터, 미분 등)는 무조건 백엔드(FastAPI) 호출!
+      // 1-2. 🚀 그 외 모든 강의(삼각함수, 미분, 회로 등)는 무조건 백엔드(FastAPI) 호출!
       else {
+        // 기존에 있던 로컬 랜덤 뽑기(mathGenerators)를 완전히 삭제했습니다.
         const endpoint = id.includes("circuit")
           ? "/api/circuit/random"
           : "/api/math/random";
-        // ❌ 로컬 무작위 퀴즈 대신 백엔드에 현재 강의 ID(삼각함수)를 던져서 정확한 문제를 받아옵니다.
         const res = await apiClient.get(`${endpoint}?type=${id}`);
         newData = res.data;
       }
@@ -106,9 +108,7 @@ export default function AiVideoWatch() {
       setProblemData(newData);
     } catch (error) {
       console.error("문제 생성 중 오류:", error);
-      alert(
-        "백엔드에서 문제를 가져오는데 실패했습니다. 서버 로그를 확인해주세요.",
-      );
+      alert("백엔드 서버에서 문제를 가져오는데 실패했습니다.");
     } finally {
       setIsFetchingProblem(false);
     }
@@ -130,6 +130,24 @@ export default function AiVideoWatch() {
       </div>
     );
   }
+
+  // 백엔드 JSON 키값이 다를 경우를 대비한 안전 장치
+  const problemText =
+    problemData?.problem || problemData?.question || problemData?.problem_latex;
+  const answerText =
+    problemData?.answer ||
+    problemData?.correct_answer ||
+    problemData?.answer_latex;
+  const stepsList = Array.isArray(problemData?.steps)
+    ? problemData.steps
+    : Array.isArray(problemData?.explanation)
+      ? problemData.explanation
+      : [];
+  const imageUrl =
+    problemData?.image ||
+    problemData?.image_url ||
+    problemData?.image_base64 ||
+    problemData?.plot;
 
   return (
     <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto font-body">
@@ -204,64 +222,83 @@ export default function AiVideoWatch() {
                         📝 실전 연습 문제
                       </h3>
 
-                      {/* 💡 1. 백엔드에서 Matplotlib 이미지를 넘겨줬다면 먼저 그려줍니다! */}
-                      {(problemData.image ||
-                        problemData.image_url ||
-                        problemData.imageUrl) && (
+                      {/* ==========================================
+                          💡 2. Matplotlib 이미지 출력 영역 (Base64 자동 처리)
+                          ========================================== */}
+                      {imageUrl && (
                         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex justify-center">
                           <img
                             src={
-                              problemData.image ||
-                              problemData.image_url ||
-                              problemData.imageUrl
+                              String(imageUrl).startsWith("http") ||
+                              String(imageUrl).startsWith("data:")
+                                ? imageUrl
+                                : `data:image/png;base64,${imageUrl}`
                             }
                             alt="AI 생성 문제 그래프"
-                            className="max-w-full h-auto rounded"
+                            className="max-w-full h-auto rounded object-contain"
                           />
                         </div>
                       )}
 
-                      {/* 💡 2. 문제 텍스트 (수식) 렌더링 */}
-                      {problemData.problem && (
+                      {/* 문제 수식 출력 */}
+                      {problemText && (
                         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto flex justify-center">
-                          <KatexBlock math={problemData.problem} />
+                          <KatexBlock math={problemText} />
                         </div>
                       )}
 
-                      <div className="space-y-4">
-                        <h4 className="font-bold text-gray-700 text-lg border-b border-blue-200 pb-3 mb-4">
-                          💡 단계별 해설
-                        </h4>
-                        {problemData.steps?.map((step, index) => (
-                          <div
-                            key={index}
-                            className="flex gap-4 items-start bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
-                          >
-                            <span className="bg-[#e5edff] text-[#0047a5] font-black w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-inner mt-1">
-                              {index + 1}
-                            </span>
-                            <div className="mt-1 w-full overflow-hidden">
-                              <p className="text-gray-600 font-medium mb-3 leading-relaxed">
-                                {step.text}
-                              </p>
-                              {step.math && (
-                                <div className="bg-gray-50 py-3 px-4 rounded-lg text-[#0047a5] text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
-                                  <KatexBlock math={step.math} />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {/* 단계별 해설 (백엔드 포맷에 맞춘 강력한 방어 로직) */}
+                      {stepsList.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-gray-700 text-lg border-b border-blue-200 pb-3 mb-4">
+                            💡 단계별 해설
+                          </h4>
+                          {stepsList.map((step, index) => {
+                            // 백엔드가 문자열로만 줬을 경우와 객체로 줬을 경우 모두 대응
+                            const text =
+                              typeof step === "string"
+                                ? step
+                                : step.text || step.description;
+                            const math =
+                              step.math || step.formula || step.equation;
 
-                      <div className="mt-10 p-6 bg-gradient-to-r from-[#0047a5] to-blue-700 text-white rounded-xl text-center shadow-lg">
-                        <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
-                          최종 정답
-                        </span>
-                        <div className="text-3xl font-black mt-2">
-                          <KatexBlock math={problemData.answer} />
+                            return (
+                              <div
+                                key={index}
+                                className="flex gap-4 items-start bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
+                              >
+                                <span className="bg-[#e5edff] text-[#0047a5] font-black w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-inner mt-1">
+                                  {index + 1}
+                                </span>
+                                <div className="mt-1 w-full overflow-hidden">
+                                  {text && (
+                                    <p className="text-gray-600 font-medium mb-3 leading-relaxed">
+                                      {text}
+                                    </p>
+                                  )}
+                                  {math && (
+                                    <div className="bg-gray-50 py-3 px-4 rounded-lg text-[#0047a5] text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
+                                      <KatexBlock math={math} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
+                      )}
+
+                      {/* 정답 출력 */}
+                      {answerText && (
+                        <div className="mt-10 p-6 bg-gradient-to-r from-[#0047a5] to-blue-700 text-white rounded-xl text-center shadow-lg">
+                          <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
+                            최종 정답
+                          </span>
+                          <div className="text-3xl font-black mt-2">
+                            <KatexBlock math={answerText} />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
