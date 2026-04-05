@@ -1,24 +1,11 @@
 import apiClient from "@/api/core/apiClient";
-import katex from "katex";
+import katex from "katex"; // 💡 react-katex 대신 순수 katex 코어를 가져옵니다.
 import "katex/dist/katex.min.css";
 import { Loader2, MoveLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
-// 컴포넌트 내부에서
-const KatexInline = ({ math }) => {
-  const html = katex.renderToString(math, { throwOnError: false });
-  return <span dangerouslySetInnerHTML={{ __html: html }} />;
-};
-
-const KatexBlock = ({ math }) => {
-  const html = katex.renderToString(math, {
-    throwOnError: false,
-    displayMode: true,
-  });
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
-};
 // 컴포넌트 Import
 import QnaCard from "@/components/quiz/QnaCard";
 import RecommendedVideo from "@/components/video/RecommendedVideo";
@@ -45,6 +32,25 @@ import {
   generateOhmQuiz,
   generatePerfectSquareQuiz,
 } from "@/utils/quizUtils";
+
+// ==========================================
+// 💡 대표님께서 만드신 완벽한 커스텀 Katex 컴포넌트!
+// ==========================================
+const KatexInline = ({ math }) => {
+  if (!math) return null;
+  const html = katex.renderToString(math, { throwOnError: false });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const KatexBlock = ({ math }) => {
+  if (!math) return null;
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
+// ==========================================
 
 const ALL_LECTURES = [
   ...mathLectures,
@@ -214,9 +220,9 @@ export default function AiVideoWatch() {
                         📝 실전 연습 문제
                       </h3>
 
-                      {/* 💡 BlockMath를 사용하여 암호 같던 글씨를 예쁜 수식으로 변환합니다! */}
-                      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto">
-                        <BlockMath math={problemData.problem} />
+                      {/* 💡 대표님의 KatexBlock 적용! */}
+                      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto flex justify-center">
+                        <KatexBlock math={problemData.problem} />
                       </div>
 
                       <div className="space-y-4">
@@ -228,17 +234,17 @@ export default function AiVideoWatch() {
                             key={index}
                             className="flex gap-4 items-start bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
                           >
-                            <span className="bg-[#e5edff] text-[#0047a5] font-black w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-inner">
+                            <span className="bg-[#e5edff] text-[#0047a5] font-black w-8 h-8 flex items-center justify-center rounded-full shrink-0 shadow-inner mt-1">
                               {index + 1}
                             </span>
                             <div className="mt-1 w-full overflow-hidden">
                               <p className="text-gray-600 font-medium mb-3 leading-relaxed">
                                 {step.text}
                               </p>
-                              {/* 💡 해설에 있는 수식도 예쁘게 변환 */}
+                              {/* 💡 해설 내부 수식 적용 */}
                               {step.math && (
-                                <div className="bg-gray-50 p-4 rounded-lg text-[#0047a5] text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
-                                  <BlockMath math={step.math} />
+                                <div className="bg-gray-50 py-3 px-4 rounded-lg text-[#0047a5] text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
+                                  <KatexBlock math={step.math} />
                                 </div>
                               )}
                             </div>
@@ -250,10 +256,10 @@ export default function AiVideoWatch() {
                         <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
                           최종 정답
                         </span>
-                        {/* 💡 정답도 예쁜 수식으로 변환 */}
-                        <span className="text-3xl font-black">
-                          <BlockMath math={problemData.answer} />
-                        </span>
+                        {/* 💡 정답 수식 적용 */}
+                        <div className="text-3xl font-black mt-2">
+                          <KatexBlock math={problemData.answer} />
+                        </div>
                       </div>
                     </div>
                   )}
