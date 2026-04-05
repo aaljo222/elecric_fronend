@@ -7,16 +7,29 @@ import ActiveVideoCard from "./ActiveVideoCard";
 import DetailModal from "./DetailModal";
 import HeroBanner from "./HeroBanner";
 import LockedVideoCard from "./LockedVideoCard";
+
 // ==========================================
 // 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
 // ==========================================
 
 const getCategory = (lecture) => {
   const sub = lecture.subject || "";
+
+  // 💡 '심화'가 포함되어 있으면 우선적으로 '심화 수학' 탭으로 분류
+  if (
+    sub.includes("심화") ||
+    sub.includes("심화수학") ||
+    sub.includes("심화 수학")
+  )
+    return "심화 수학";
+
+  // 💡 그 외 '수학'이 포함된 경우 '기초 수학' 탭으로 분류
   if (sub.includes("수학")) return "기초 수학";
+
   if (sub.includes("회로")) return "회로이론";
   if (sub.includes("전자기")) return "전자기학";
   if (sub.includes("AI") || sub.includes("Vision")) return "Vision";
+
   return "전체";
 };
 
@@ -30,6 +43,12 @@ const CATEGORY_INFO = {
     title: "기초 수학 마스터 클래스",
     desc: "전기 공학 계산의 뼈대가 되는 핵심 수학 이론! 수포자도 이해할 수 있게 쉽게 풀어드립니다.",
     bgIcon: "∑",
+  },
+  "심화 수학": {
+    // 💡 에러의 원인이었던 심화 수학 데이터 추가 완료!
+    title: "심화 수학 파워업 클래스",
+    desc: "미적분과 벡터 내적 등, 전자기학과 회로망 해석을 위한 필수 고급 수학을 정복합니다.",
+    bgIcon: "∫",
   },
   회로이론: {
     title: "회로이론 완벽 정복",
@@ -126,7 +145,8 @@ export default function VideoListPage() {
   return (
     <main className="mx-auto px-8 py-12 max-w-7xl w-[85%] font-body relative">
       <HeroBanner
-        currentCategoryData={CATEGORY_INFO[activeTab]}
+        // 💡 앱 크래시 방지를 위한 안전장치 (Fallback) 추가
+        currentCategoryData={CATEGORY_INFO[activeTab] || CATEGORY_INFO["전체"]}
         total={total}
       />
 
