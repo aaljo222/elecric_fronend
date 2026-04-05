@@ -1,5 +1,5 @@
 import apiClient from "@/api/core/apiClient";
-import katex from "katex"; // 💡 react-katex 대신 순수 katex 코어를 가져옵니다.
+import katex from "katex";
 import "katex/dist/katex.min.css";
 import { Loader2, MoveLeft } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import VideoInfo from "@/components/video/VideoInfo";
 import VideoPlayer from "@/components/video/VideoPlayer";
 import VideoPlayerList from "@/components/video/VideoPlayList";
 
-// 데이터 및 퀴즈 생성기 Import
+// 데이터 Import
 import {
   circuitLectures,
   emLectures,
@@ -21,20 +21,8 @@ import {
   visionLectures,
 } from "@/constants/videoData";
 
-import {
-  generateBasicFunctionQuiz,
-  generateCompositeFunctionQuiz,
-  generateDerivativeQuiz,
-  generateExponentQuiz,
-  generateFactorizationQuiz,
-  generateFractionQuiz,
-  generateLogarithmQuiz,
-  generateOhmQuiz,
-  generatePerfectSquareQuiz,
-} from "@/utils/quizUtils";
-
 // ==========================================
-// 💡 대표님께서 만드신 완벽한 커스텀 Katex 컴포넌트!
+// 💡 커스텀 Katex 컴포넌트
 // ==========================================
 const KatexInline = ({ math }) => {
   if (!math) return null;
@@ -93,41 +81,37 @@ export default function AiVideoWatch() {
     else setLoading(false);
   }, [id, videoData]);
 
-  const handleFetchProblem = () => {
+  // 💡 문제 출제 핵심 로직 (백엔드 통신 복구!)
+  const handleFetchProblem = async () => {
     setIsFetchingProblem(true);
 
-    setTimeout(() => {
-      try {
-        let newData = null;
+    try {
+      let newData = null;
 
-        if (videoData && videoData.generator) {
-          newData = videoData.generator();
-        } else if (videoData?.subject?.includes("회로")) {
-          newData = generateOhmQuiz();
-        } else {
-          const mathGenerators = [
-            generateFractionQuiz,
-            generateExponentQuiz,
-            generateLogarithmQuiz,
-            generateFactorizationQuiz,
-            generateBasicFunctionQuiz,
-            generateCompositeFunctionQuiz,
-            generatePerfectSquareQuiz,
-            generateDerivativeQuiz,
-          ];
-          const randomFunc =
-            mathGenerators[Math.floor(Math.random() * mathGenerators.length)];
-          newData = randomFunc();
-        }
-
-        setProblemData(newData);
-      } catch (error) {
-        console.error("문제 생성 중 오류:", error);
-        alert("문제를 생성하는 데 실패했습니다.");
-      } finally {
-        setIsFetchingProblem(false);
+      // 1. 프론트엔드 로컬에 전용 문제 생성기가 지정된 경우 (기초수학 앞부분)
+      if (videoData && videoData.generator) {
+        await new Promise((resolve) => setTimeout(resolve, 500)); // AI 연출 딜레이
+        newData = videoData.generator();
       }
-    }, 500);
+      // 2. 🚀 그 외 모든 강의(삼각함수, 벡터, 미분 등)는 무조건 백엔드(FastAPI) 호출!
+      else {
+        const endpoint = id.includes("circuit")
+          ? "/api/circuit/random"
+          : "/api/math/random";
+        // ❌ 로컬 무작위 퀴즈 대신 백엔드에 현재 강의 ID(삼각함수)를 던져서 정확한 문제를 받아옵니다.
+        const res = await apiClient.get(`${endpoint}?type=${id}`);
+        newData = res.data;
+      }
+
+      setProblemData(newData);
+    } catch (error) {
+      console.error("문제 생성 중 오류:", error);
+      alert(
+        "백엔드에서 문제를 가져오는데 실패했습니다. 서버 로그를 확인해주세요.",
+      );
+    } finally {
+      setIsFetchingProblem(false);
+    }
   };
 
   if (loading) {
@@ -220,10 +204,29 @@ export default function AiVideoWatch() {
                         📝 실전 연습 문제
                       </h3>
 
-                      {/* 💡 대표님의 KatexBlock 적용! */}
-                      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto flex justify-center">
-                        <KatexBlock math={problemData.problem} />
-                      </div>
+                      {/* 💡 1. 백엔드에서 Matplotlib 이미지를 넘겨줬다면 먼저 그려줍니다! */}
+                      {(problemData.image ||
+                        problemData.image_url ||
+                        problemData.imageUrl) && (
+                        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex justify-center">
+                          <img
+                            src={
+                              problemData.image ||
+                              problemData.image_url ||
+                              problemData.imageUrl
+                            }
+                            alt="AI 생성 문제 그래프"
+                            className="max-w-full h-auto rounded"
+                          />
+                        </div>
+                      )}
+
+                      {/* 💡 2. 문제 텍스트 (수식) 렌더링 */}
+                      {problemData.problem && (
+                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto flex justify-center">
+                          <KatexBlock math={problemData.problem} />
+                        </div>
+                      )}
 
                       <div className="space-y-4">
                         <h4 className="font-bold text-gray-700 text-lg border-b border-blue-200 pb-3 mb-4">
@@ -241,7 +244,6 @@ export default function AiVideoWatch() {
                               <p className="text-gray-600 font-medium mb-3 leading-relaxed">
                                 {step.text}
                               </p>
-                              {/* 💡 해설 내부 수식 적용 */}
                               {step.math && (
                                 <div className="bg-gray-50 py-3 px-4 rounded-lg text-[#0047a5] text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
                                   <KatexBlock math={step.math} />
@@ -256,7 +258,6 @@ export default function AiVideoWatch() {
                         <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
                           최종 정답
                         </span>
-                        {/* 💡 정답 수식 적용 */}
                         <div className="text-3xl font-black mt-2">
                           <KatexBlock math={problemData.answer} />
                         </div>
