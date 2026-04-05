@@ -20,7 +20,7 @@ import {
   visionLectures,
 } from "@/constants/videoData";
 
-// 💡 대표님이 만드신 로컬 문제 생성기들을 모두 불러옵니다!
+// 💡 로컬 퀴즈 생성 함수들을 전부 불러옵니다!
 import {
   generateBasicFunctionQuiz,
   generateCompositeFunctionQuiz,
@@ -50,7 +50,7 @@ export default function AiVideoWatch() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("quiz"); // "quiz" | "qna"
 
-  // 🌟 내장형 퀴즈 관련 State
+  // 🌟 내장형 퀴즈 관련 State (VideoListPage 방식 적용!)
   const [problemData, setProblemData] = useState(null);
   const [isFetchingProblem, setIsFetchingProblem] = useState(false);
 
@@ -71,14 +71,14 @@ export default function AiVideoWatch() {
       }
     };
 
-    // 비디오가 바뀌면 퀴즈 탭 내용 초기화
+    // 비디오(페이지)가 바뀌면 띄워진 문제도 초기화합니다.
     setProblemData(null);
 
     if (videoData) fetchVideoData();
     else setLoading(false);
   }, [id, videoData]);
 
-  // 💡 로컬 퀴즈 생성 로직 (VideoListPage 방식 내장)
+  // 💡 로컬 퀴즈 생성 로직 (VideoListPage 방식 완벽 이식)
   const handleFetchProblem = () => {
     setIsFetchingProblem(true);
 
@@ -184,11 +184,14 @@ export default function AiVideoWatch() {
                 </button>
               </div>
 
-              {/* 🌟 탭 상태에 따른 렌더링 */}
+              {/* 🌟 탭 상태에 따른 렌더링 분기 */}
               {activeTab === "quiz" ? (
                 <div className="mt-8">
-                  {/* 문제 생성 버튼 */}
+                  {/* 문제 생성 안내 텍스트 및 버튼 */}
                   <div className="w-full text-center">
+                    <p className="text-gray-500 mb-6 font-medium">
+                      서버에서 무작위 심화 문제를 가져옵니다.
+                    </p>
                     <button
                       onClick={handleFetchProblem}
                       disabled={isFetchingProblem}
@@ -199,12 +202,12 @@ export default function AiVideoWatch() {
                       }`}
                     >
                       {isFetchingProblem
-                        ? "⏳ 맞춤형 문제를 생성하는 중..."
-                        : "🎯 해당 강의 실전 문제 풀기"}
+                        ? "⏳ AI가 문제를 빚어내는 중..."
+                        : "🎯 랜덤 문제 가져오기"}
                     </button>
                   </div>
 
-                  {/* 문제 출력 영역 (VideoListPage 방식 동일) */}
+                  {/* 문제 출력 영역 (풀이 과정과 정답이 한 번에 나오는 구조) */}
                   {problemData && (
                     <div className="mt-8 p-8 bg-[#f8faff] border border-blue-100 rounded-xl shadow-sm animate-fade-in text-left">
                       <h3 className="text-2xl font-extrabold text-[#0047a5] mb-6 flex items-center gap-2 tracking-tight">
