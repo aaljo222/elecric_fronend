@@ -1,35 +1,38 @@
-import apiClient from "@/api/core/apiClient";
 import useCustomMove from "@/hooks/useCustomMove";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-// 🌟 3D 위젯들 Import 추가
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import {
+  circuitLectures,
+  emLectures,
+  mathLectures,
+  visionLectures,
+} from "@/constants/videoData";
+
+// 💡 분리해둔 하위 컴포넌트들 Import 추가
 import ActiveVideoCard from "./ActiveVideoCard";
 import DetailModal from "./DetailModal";
 import HeroBanner from "./HeroBanner";
 import LockedVideoCard from "./LockedVideoCard";
 
+// 💡 1. 랜덤 문제 생성기 컴포넌트 임포트 (경로 확인 필수!)
+import RandomProblemSection from "@/components/RandomProblemSection";
 // ==========================================
-// 1. 위젯 매핑 설정 (DB의 widget_type과 실제 컴포넌트 연결)
+// 1. 데이터 및 설정값
 // ==========================================
+const ALL_LECTURES = [
+  ...mathLectures,
+  ...circuitLectures,
+  ...emLectures,
+  ...visionLectures,
+];
 
 const getCategory = (lecture) => {
-  const sub = lecture.subject || "";
-
-  // 💡 '심화'가 포함되어 있으면 우선적으로 '심화 수학' 탭으로 분류
-  if (
-    sub.includes("심화") ||
-    sub.includes("심화수학") ||
-    sub.includes("심화 수학")
-  )
-    return "심화 수학";
-
-  // 💡 그 외 '수학'이 포함된 경우 '기초 수학' 탭으로 분류
-  if (sub.includes("수학")) return "기초 수학";
-
-  if (sub.includes("회로")) return "회로이론";
-  if (sub.includes("전자기")) return "전자기학";
-  if (sub.includes("AI") || sub.includes("Vision")) return "Vision";
-
+  if (lecture.subject?.includes("수학")) return "기초 수학";
+  if (lecture.subject?.includes("회로")) return "회로이론";
+  if (lecture.subject?.includes("전자기")) return "전자기학";
+  if (lecture.subject?.includes("AI") || lecture.subject?.includes("Vision"))
+    return "Vision";
   return "전체";
 };
 
@@ -43,12 +46,6 @@ const CATEGORY_INFO = {
     title: "기초 수학 마스터 클래스",
     desc: "전기 공학 계산의 뼈대가 되는 핵심 수학 이론! 수포자도 이해할 수 있게 쉽게 풀어드립니다.",
     bgIcon: "∑",
-  },
-  "심화 수학": {
-    // 💡 에러의 원인이었던 심화 수학 데이터 추가 완료!
-    title: "심화 수학 파워업 클래스",
-    desc: "미적분과 벡터 내적 등, 전자기학과 회로망 해석을 위한 필수 고급 수학을 정복합니다.",
-    bgIcon: "∫",
   },
   회로이론: {
     title: "회로이론 완벽 정복",
@@ -67,101 +64,70 @@ const CATEGORY_INFO = {
   },
 };
 
-const CATEGORIES = [
-  { id: "전체", label: "전체보기", icon: "🌟" },
-  { id: "기초 수학", label: "기초 수학", icon: "📐" },
-  { id: "심화 수학", label: "심화 수학", icon: "📈" }, // 💡 새로 추가된 탭
-  { id: "회로이론", label: "회로이론", icon: "⚡" },
-  { id: "전자기학", label: "전자기학", icon: "🧲" },
-  { id: "Vision", label: "Vision", icon: "🚀" },
-];
-
 // ==========================================
-// 3. 메인 페이지 컴포넌트
+// 3. 메인 컴포넌트
 // ==========================================
 export default function VideoListPage() {
   const { page, size, moveToList, moveToRead } = useCustomMove("/user/videos");
+
   const [activeTab, setActiveTab] = useState("전체");
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [videoList, setVideoList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // 백엔드 API 호출
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const res = await apiClient.get("/api/video/list");
-
-        // 백엔드 데이터(Neo4j)를 프론트 규격에 매핑
-        const mappedData = res.data.map((v) => ({
-          id: v.id, // Neo4j의 'id' 속성 사용
-          title: v.title || "제목 없음",
-          videoUrl: v.video_url || "",
-          thumbnail: v.thumbnail || "",
-          subject: v.subject || "영상 강의",
-          description: v.description || "강의 설명이 없습니다.",
-          widgetType: v.widget_type || null,
-        }));
-        setVideoList(mappedData);
-      } catch (e) {
-        console.error("비디오 리스트 로딩 실패:", e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchVideos();
-  }, []);
-
-  // 탭 필터링 및 카테고리화
+  // ✅ 데이터 가공 및 필터링 (정렬 로직 제거)
   const { activeVideos, lockedVideos } = useMemo(() => {
-    let result = videoList.map((v) => ({
+    let result = ALL_LECTURES.map((v) => ({
       ...v,
       category: getCategory(v),
-      isLocked: !v.videoUrl || v.videoUrl === "",
+      duration: v.duration || "10:00",
+      createdAt: v.createdAt || "2026-01-01",
+      isLocked:
+        !v.videoUrls || v.videoUrls.length === 0 || v.videoUrls[0] === "",
     }));
 
-    if (activeTab !== "전체") {
-      result = result.filter((v) => v.category === activeTab);
-    }
+    if (activeTab !== "전체")
+      result = result.filter((video) => video.category === activeTab);
+
+    // 정렬 로직이 제거됨: 데이터 순서 그대로 유지
 
     return {
       activeVideos: result.filter((v) => !v.isLocked),
       lockedVideos: result.filter((v) => v.isLocked),
     };
-  }, [activeTab, videoList]);
+  }, [activeTab]);
 
   const total = activeVideos.length;
   const totalPages = Math.ceil(total / size) || 1;
   const start = (page - 1) * size;
   const currentList = activeVideos.slice(start, start + size);
 
-  if (isLoading)
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="animate-spin text-[#0047a5]" size={48} />
-      </div>
-    );
+  const handleTabClick = (categoryId) => {
+    setActiveTab(categoryId);
+    moveToList({ page: 1, size });
+  };
+
+  // 💡 2. 탭(카테고리)에 따라 백엔드 API에 요청할 고유 ID를 분기 처리
+  const getRandomProblemId = () => {
+    if (activeTab === "회로이론" || activeTab === "전자기학")
+      return "circuit_random";
+    return "math_random"; // 기본값: 수학 문제
+  };
 
   return (
     <main className="mx-auto px-8 py-12 max-w-7xl w-[85%] font-body relative">
       <HeroBanner
-        // 💡 앱 크래시 방지를 위한 안전장치 (Fallback) 추가
-        currentCategoryData={CATEGORY_INFO[activeTab] || CATEGORY_INFO["전체"]}
+        currentCategoryData={CATEGORY_INFO[activeTab]}
         total={total}
       />
 
-      {/* 카테고리 탭 컨트롤 */}
+      {/* 탭 컨트롤 (정렬 필터 제거됨) */}
       <div className="flex flex-wrap items-center justify-start gap-4 mb-10">
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => {
-              setActiveTab(cat.id);
-              moveToList({ page: 1, size });
-            }}
+            onClick={() => handleTabClick(cat.id)}
             className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-sm ${
               activeTab === cat.id
-                ? "bg-[#0047a5] text-white scale-105"
+                ? "bg-[#0047a5] text-white shadow-md scale-105"
                 : "bg-[#f3f4f6] text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -171,25 +137,11 @@ export default function VideoListPage() {
         ))}
       </div>
 
-      {/* 상단 안내 정보 및 애니메이션 */}
-      <div className="mb-6 flex justify-between items-end">
-        <div className="text-gray-500 font-medium">
-          총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
-        </div>
-        <div className="w-40 md:w-56 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-auto object-cover"
-          >
-            <source src="/videos/manim/list_intro.webm" type="video/webm" />
-          </video>
-        </div>
+      <div className="mb-6 text-gray-500 font-medium">
+        총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
       </div>
 
-      {/* 강의 리스트 그리드 */}
+      {/* 비디오 리스트 */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
         {currentList.length > 0 ? (
           currentList.map((video) => (
@@ -206,7 +158,7 @@ export default function VideoListPage() {
           </div>
         )}
 
-        {/* 마지막 페이지에서 잠긴 강의 노출 */}
+        {/* 잠금 비디오 (마지막 페이지이거나 데이터 없을 때 렌더링) */}
         {(page === totalPages || currentList.length === 0) &&
           lockedVideos.map((locked) => (
             <LockedVideoCard key={locked.id} locked={locked} />
@@ -219,7 +171,7 @@ export default function VideoListPage() {
           <button
             onClick={() => moveToList({ page: page - 1, size })}
             disabled={page <= 1}
-            className="p-2 disabled:opacity-30 text-gray-400 hover:text-[#0047a5]"
+            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500"
           >
             <ChevronLeft size={24} />
           </button>
@@ -239,14 +191,33 @@ export default function VideoListPage() {
           <button
             onClick={() => moveToList({ page: page + 1, size })}
             disabled={page >= totalPages}
-            className="p-2 disabled:opacity-30 text-gray-400 hover:text-[#0047a5]"
+            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500"
           >
             <ChevronRight size={24} />
           </button>
         </nav>
       )}
 
-      {/* 상세보기 모달 */}
+      {/* 💡 3. 하단: 오늘의 랜덤 도전 영역 추가 */}
+      <div className="mt-20 pt-16 border-t border-gray-200">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            오늘의 랜덤 도전 🎯
+          </h2>
+          <p className="text-gray-500 mt-3 text-lg">
+            선택하신{" "}
+            <span className="text-[#0047a5] font-black underline underline-offset-4 decoration-2">
+              '{activeTab}'
+            </span>{" "}
+            분야의 무작위 문제를 풀어보고 실력을 점검하세요!
+          </p>
+        </div>
+
+        {/* 선택된 탭에 따라 동적으로 ID를 던져줍니다. */}
+        <RandomProblemSection lectureId={getRandomProblemId()} />
+      </div>
+
+      {/* 모달 */}
       <DetailModal
         selectedVideo={selectedVideo}
         onClose={() => setSelectedVideo(null)}
