@@ -41,3 +41,5 @@ const VideoPlayer = ({ videoUrl, title }) => {
     </div>
   );
 };
+
+export default VideoPlayer;
