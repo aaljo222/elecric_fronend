@@ -17,7 +17,7 @@ const PresentationIndexPage = () => {
     { code: "CN", title: "제어공학", color: "orange", icon: "🎛️" },
     { code: "EM", title: "전기자기학", color: "red", icon: "🧲" },
     { code: "KEC", title: "설비기준", color: "gray", icon: "📋" },
-    { code: "KOR", title: "Korea", color: "green", icon: "🇰🇷" }, // 추가된 부분
+    { code: "KOR", title: "Korea", color: "green", icon: "🇰🇷" },
   ];
 
   const currentSubjectInfo = subjects.find((s) => s.code === selectedSubject);
@@ -30,11 +30,12 @@ const PresentationIndexPage = () => {
   const fetchChapterList = async () => {
     setLoading(true);
     try {
+      // 💡 [핵심 수정] KOR로 고정되어 있던 부분을 selectedSubject 상태값으로 동적 변경!
       const response = await apiClient.get(
-        `/api/presentation/chapters/list?subject=${selectedSubject}`, // 💡 KOR 대신 ${selectedSubject}로 변경!
+        `/api/presentation/chapters/list?subject=${selectedSubject}`,
       );
       setChapterList(response.data);
-      console.log(response.data);
+      console.log("📥 받아온 챕터 데이터:", response.data);
     } catch (e) {
       console.error("챕터 로드 실패:", e);
     } finally {
@@ -93,7 +94,7 @@ const PresentationIndexPage = () => {
             <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
             <p className="text-slate-600 font-medium">로딩 중...</p>
           </div>
-        ) : (
+        ) : chapterList && chapterList.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {chapterList.map((chapter, idx) => (
               <button
@@ -118,6 +119,12 @@ const PresentationIndexPage = () => {
                 </div>
               </button>
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+            <p className="text-slate-500 font-medium">
+              해당 과목에 등록된 챕터가 없습니다.
+            </p>
           </div>
         )}
       </div>

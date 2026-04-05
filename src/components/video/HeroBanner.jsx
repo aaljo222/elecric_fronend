@@ -14,6 +14,9 @@ const HeroBanner = ({ currentCategoryData, total }) => (
         <span className="bg-white/20 px-4 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
           총 {total}개의 강의
         </span>
+        <span className="bg-[#d7e2ff] text-[#003f87] px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
+          인기 코스
+        </span>
       </div>
     </div>
   </div>

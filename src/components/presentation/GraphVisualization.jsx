@@ -1,11 +1,9 @@
+import katex from "katex";
 import { BookOpen, FileText, RotateCcw, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-// src/components/common/KatexComponents.jsx
-import katex from "katex";
-import "katex/dist/katex.min.css";
 
-export const InlineMath = ({ math }) => {
+const InlineMath = ({ math }) => {
   const html = katex.renderToString(math, {
     throwOnError: false,
     displayMode: false,
@@ -13,7 +11,7 @@ export const InlineMath = ({ math }) => {
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 };
 
-export const BlockMath = ({ math }) => {
+const BlockMath = ({ math }) => {
   const html = katex.renderToString(math, {
     throwOnError: false,
     displayMode: true,

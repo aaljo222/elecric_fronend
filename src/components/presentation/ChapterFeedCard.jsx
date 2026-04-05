@@ -1,6 +1,4 @@
-// 교체할 내용 (각 파일 상단에 추가)
 import katex from "katex";
-import "katex/dist/katex.min.css";
 import {
   BookOpen,
   Calculator,

@@ -1,13 +1,15 @@
 // 페이지 이외의 것
-import AiVideoWatch from "@/components/video/AiVideoWatch";
-import VideoListPage from "@/components/video/VideoListPage";
 import BasicLayout from "@/layouts/BasicLayout";
 import ChapterGraphPage from "@/pages/public/ChapterGraphPage";
 import GenericFlowPage from "@/pages/public/GenericFlowPage";
 import PresentationIndexPage from "@/pages/public/PresentationIndexPage";
 import PresentationListPage from "@/pages/public/PresentationListPage";
+import PresentationPage from "@/pages/public/PresentationPage";
 import SubjectMapPage from "@/pages/public/SubjectMapPage";
+
 // 페이지
+import AiVideoList from "@/pages/user/AiVideoList";
+import AiVideoWatch from "@/pages/user/AiVideoWatch";
 import KnowledgeRepository from "@/pages/user/KnowledgeRepository";
 import ProblemList from "@/pages/user/ProblemList";
 import ProblemSolving from "@/pages/user/ProblemSolving";
@@ -22,7 +24,7 @@ export const userRouter = [
       { index: true, element: <UserDashboard /> },
 
       // 🎥 강의
-      { path: "videos", element: <VideoListPage /> }, // 목록
+      { path: "videos", element: <AiVideoList /> }, // 목록
       { path: "videos/:id", element: <AiVideoWatch /> }, // 상세
 
       // 📝 문제

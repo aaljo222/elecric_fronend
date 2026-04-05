@@ -146,6 +146,7 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/watch", // 일반 시청용
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/manifest/video.m3u8", // HLS 스트리밍용
     ],
+    widget_type: "trig_circle", // 💡 이 줄을 추가하세요! (WIDGET_MAP의 키값)
   },
   {
     id: "8fc05f0f6c31f19deeb976cb2b1562cf",
@@ -218,6 +219,7 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/watch",
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/manifest/video.m3u8",
     ],
+    widget_type: "derivative", // 💡 이 줄을 추가하세요!
     useBackend: true, // 💡 FastAPI 백엔드의 무한 문제풀이(generate_derivative_problem)를 호출하기 위해 반드시 true로 설정
   },
   {
@@ -346,6 +348,7 @@ export const circuitLectures = [
     videoUrls: [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/99ba85e1fdd547f5cdc6e4afd17e03ce/watch", // 시청용 링크
     ],
+    widget_type: "ohms_law", // 💡 이 줄을 추가하세요!
   },
 ];
 
@@ -355,15 +358,45 @@ export const emLectures = [
     id: "em_coulomb",
     subject: "전자기학",
     title: "1강. 쿨롱의 법칙",
-    duration: "-",
+    duration: "10:00",
     description:
-      "전하 간에 작용하는 힘을 벡터와 분수식을 이용해 정확히 계산합니다.",
-    thumbnail: "",
+      "두 전하 사이에 작용하는 전기력(쿨롱의 힘)을 3D 시뮬레이션을 통해 직관적으로 이해하고 계산해 봅니다.",
+    thumbnail:
+      "https://placehold.co/600x400/0f172a/ffffff?text=Coulomb%27s+Law+3D",
     thumbnailTime: "",
-    videoUrls: [""],
+    // 💡 잠금 해제를 위한 임시 더미 영상 URL 삽입!
+    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
+    widget_type: "coulombs_law",
+  },
+  {
+    id: "lec_poten_3d",
+    subject: "전자기학",
+    title: "2강. 등전위선 3D 시각화",
+    duration: "12:30",
+    description:
+      "전기장 내에서 전위가 같은 점들을 연결한 등전위선을 3D 공간에서 확인하고 전하의 움직임을 예측해 봅니다.",
+    thumbnail:
+      "https://placehold.co/600x400/1e293b/ffffff?text=Equipotential+3D",
+    thumbnailTime: "",
+    // 💡 잠금 해제를 위한 임시 더미 영상 URL 삽입!
+    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
+    widget_type: "equipotential",
+  },
+  {
+    id: "em_ampere_law",
+    subject: "전자기학",
+    title: "3강. 앙페르의 오른나사 법칙",
+    duration: "08:45",
+    description:
+      "직선 전류 주위에 생성되는 자기장의 방향을 앙페르의 오른나사 법칙을 통해 입체적으로 학습합니다.",
+    thumbnail:
+      "https://placehold.co/600x400/334155/ffffff?text=Ampere%27s+Law+3D",
+    thumbnailTime: "",
+    // 💡 잠금 해제를 위한 임시 더미 영상 URL 삽입!
+    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
+    widget_type: "ampere_law",
   },
 ];
-
 // 4. AI Company Vision 데이터
 export const visionLectures = [
   {

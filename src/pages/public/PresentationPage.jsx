@@ -1,7 +1,6 @@
+import katex from "katex";
 import "katex/dist/katex.min.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-// 교체할 내용 (각 파일 상단에 추가)
-import katex from "katex";
 
 const InlineMath = ({ math }) => {
   const html = katex.renderToString(math, {
@@ -18,7 +17,6 @@ const BlockMath = ({ math }) => {
   });
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 };
-
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
 
 // 📌 챕터 카드 컴포넌트
@@ -122,24 +120,25 @@ export default function PresentationPage() {
     setLoading(true);
     try {
       // API 호출
-      // 🚀 수정 후 (apiClient로 통일하여 안전하게 통신)
-      const res = await apiClient.get(
-        `/api/presentation/chapters?after=${lastOrder}&limit=3`,
+      const res = await fetch(
+        `${API_BASE}/api/presentation/chapters?after=${lastOrder}&limit=3`,
       );
-      const data = res.data; // Axios는 .data로 꺼냅니다.
+      const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
         setItems((prev) => {
+          // 중복 제거 (혹시 모를 중복 방지)
           const newItems = data.filter(
             (d) => !prev.some((p) => p.code === d.code),
           );
           return [...prev, ...newItems];
         });
 
+        // 다음 order 값 업데이트 (마지막 아이템 기준)
         const lastItem = data[data.length - 1];
         setLastOrder(lastItem.order || lastOrder + 1);
       } else {
-        setHasMore(false);
+        setHasMore(false); // 더 이상 데이터 없음
       }
     } catch (e) {
       console.error("데이터 로딩 실패:", e);
@@ -147,6 +146,7 @@ export default function PresentationPage() {
       setLoading(false);
     }
   }, [lastOrder, loading, hasMore]);
+
   // Intersection Observer 설정
   useEffect(() => {
     if (!hasMore) return;

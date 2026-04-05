@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-// 교체할 내용 (각 파일 상단에 추가)
+import { aiChatGraph } from "@/api/aiApi";
+import { submitAnswer } from "@/api/answerApi";
+import apiClient from "@/api/core/apiClient"; // ✅ axios 대신 apiClient 임포트
+import { getQuestionById } from "@/api/questionApi";
+import useCustomLogin from "@/hooks/useCustomLogin";
 import katex from "katex";
-import "katex/dist/katex.min.css";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 const InlineMath = ({ math }) => {
   const html = katex.renderToString(math, {
@@ -18,15 +22,6 @@ const BlockMath = ({ math }) => {
   });
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 };
-
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-
-import { aiChatGraph } from "@/api/aiApi";
-import { submitAnswer } from "@/api/answerApi";
-import apiClient from "@/api/core/apiClient"; // ✅ axios 대신 apiClient 임포트
-import { getQuestionById } from "@/api/questionApi";
-import useCustomLogin from "@/hooks/useCustomLogin";
-
 export default function QuestionSolvePage() {
   const { id } = useParams();
   const navigate = useNavigate();

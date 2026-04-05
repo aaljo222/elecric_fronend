@@ -1,4 +1,5 @@
 import apiClient from "@/api/core/apiClient";
+import katex from "katex";
 import "katex/dist/katex.min.css";
 import {
   BookOpen,
@@ -16,8 +17,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-// 교체할 내용 (각 파일 상단에 추가)
-import katex from "katex";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const InlineMath = ({ math }) => {
   const html = katex.renderToString(math, {
@@ -34,9 +34,6 @@ const BlockMath = ({ math }) => {
   });
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 };
-
-import { useLocation, useNavigate } from "react-router-dom";
-
 const NODE_STYLES = {
   chapter: {
     bg: "#1e3a8a",

@@ -1,1 +1,1 @@
-export const COMPANY_NAME = "AI Company";
+export const COMPANY_NAME = "ELECAI";

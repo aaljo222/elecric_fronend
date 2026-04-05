@@ -1,9 +1,12 @@
-import { Play } from "lucide-react"; // 🌟 Play 아이콘 에러 해결!
+import { Play } from "lucide-react";
 
 const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
-  const finalThumbnail =
+  let finalThumbnail =
     video.thumbnail ||
-    "https://placehold.co/400x300/e2e8f0/94a3b8?text=AI+LECTURE";
+    "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image";
+  if (video.thumbnail && video.thumbnailTime) {
+    finalThumbnail = `${video.thumbnail}?time=${video.thumbnailTime}`;
+  }
 
   return (
     <article
@@ -16,50 +19,15 @@ const ActiveVideoCard = ({ video, onRead, onOpenModal }) => {
           alt={video.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-
-        {/* 1. 왼쪽 상단: 카테고리 태그 */}
         <div className="absolute top-4 left-4 bg-[#0047a5] text-white px-3 py-1 rounded-lg font-bold text-sm tracking-wider uppercase">
           {video.category || "STEP"}
         </div>
-
-        {/* 2. 오른쪽 상단: 인터랙티브 위젯 버튼 */}
-        {video.widgetType && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation(); // 카드 전체 클릭 방지
-              onOpenModal(video); // 모달 열기
-            }}
-            className="absolute top-4 right-4 z-10 bg-yellow-400 hover:bg-yellow-500 text-gray-900 p-2 rounded-full shadow-lg transition-all hover:scale-110 flex items-center justify-center group/widget"
-            title="실습 도구 열기"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="fill-current"
-            >
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-            <span className="max-w-0 overflow-hidden group-hover/widget:max-w-xs group-hover/widget:ml-2 transition-all duration-300 text-xs font-black">
-              PRACTICE
-            </span>
-          </button>
-        )}
-
-        {/* 3. 중앙: 호버 시 재생 아이콘 */}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
             <Play className="text-[#0047a5] fill-current ml-1" size={28} />
           </div>
         </div>
       </div>
-
       <div className="p-8 flex flex-col flex-grow">
         <span className="text-[#0047a5] font-bold text-xs uppercase tracking-widest mb-2 block">
           {video.subject || "영상 강의"}

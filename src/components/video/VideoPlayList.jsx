@@ -1,7 +1,9 @@
-import { PlayCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import useCustomMove from "@/hooks/useCustomMove";
+import { Lock, PlayCircle } from "lucide-react";
+import { useMemo } from "react";
+import { useParams } from "react-router-dom";
 
-// 대표님의 전체 강의 데이터를 불러옵니다. (경로 확인 필수)
+// ✅ 데이터 임포트
 import {
   circuitLectures,
   emLectures,
@@ -16,54 +18,98 @@ const ALL_LECTURES = [
   ...visionLectures,
 ];
 
-const VideoPlayList = () => {
-  const navigate = useNavigate();
+export default function VideoPlayList() {
+  const { id } = useParams();
+  const { moveToRead } = useCustomMove("/user/videos");
 
-  // 상위 5개의 강의만 샘플로 보여줍니다. (또는 카테고리별로 필터링 가능)
-  const displayList = ALL_LECTURES.slice(0, 5);
+  // 1. 현재 보고 있는 영상의 정보를 찾아서 같은 과목(subject)의 영상들만 추출
+  const { currentSubjectLectures, currentTitle } = useMemo(() => {
+    const currentVideo = ALL_LECTURES.find((v) => v.id === id);
+    if (!currentVideo) return { currentSubjectLectures: [], currentTitle: "" };
+
+    const filtered = ALL_LECTURES.filter(
+      (v) => v.subject === currentVideo.subject,
+    );
+    return {
+      currentSubjectLectures: filtered,
+      currentTitle: currentVideo.subject,
+    };
+  }, [id]);
+
+  if (currentSubjectLectures.length <= 1) return null;
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-      <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-        <h3 className="text-lg font-bold text-gray-900">이어지는 강의</h3>
-        <span className="text-xs font-bold text-[#0047a5] bg-[#e5edff] px-2 py-1 rounded">
-          {ALL_LECTURES.length} 강
-        </span>
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden flex flex-col">
+      {/* 헤더 영역 */}
+      <div className="p-4 bg-gray-50 border-b border-gray-100">
+        <h3 className="font-bold text-gray-900 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 bg-[#0047a5] rounded-full"></span>
+          {currentTitle} 재생 목록
+        </h3>
+        <p className="text-[11px] text-gray-500 mt-1">
+          총 {currentSubjectLectures.length}개의 강의로 구성되어 있습니다.
+        </p>
       </div>
 
-      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-        {displayList.map((video, index) => (
-          <div
-            key={video.id}
-            onClick={() => navigate(`/user/videos/${video.id}`)}
-            className="flex gap-3 items-center p-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors group"
-          >
-            <div className="w-24 h-16 bg-gray-200 rounded-lg overflow-hidden shrink-0 relative">
-              <img
-                src={
-                  video.thumbnail ||
-                  "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image"
-                }
-                alt={video.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-              />
-              <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <PlayCircle className="text-white" size={20} />
+      {/* 리스트 영역 */}
+      <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+        {currentSubjectLectures.map((video, index) => {
+          const isActive = video.id === id;
+          const isLocked = !video.videoUrls || video.videoUrls[0] === "";
+
+          return (
+            <div
+              key={video.id}
+              onClick={() => !isLocked && moveToRead(video.id)}
+              className={`group flex items-start gap-3 p-4 transition-all border-b border-gray-50 last:border-0
+                ${isActive ? "bg-blue-50/50" : isLocked ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer"}
+              `}
+            >
+              {/* 인덱스 또는 상태 아이콘 */}
+              <div className="mt-0.5 shrink-0">
+                {isActive ? (
+                  <PlayCircle
+                    size={18}
+                    className="text-[#0047a5] fill-current bg-white rounded-full"
+                  />
+                ) : isLocked ? (
+                  <Lock size={16} className="text-gray-400" />
+                ) : (
+                  <span className="text-xs font-bold text-gray-400 group-hover:text-[#0047a5]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                )}
               </div>
+
+              {/* 강의 정보 */}
+              <div className="flex-1 min-w-0">
+                <h4
+                  className={`text-sm font-semibold truncate ${isActive ? "text-[#0047a5]" : "text-gray-700"}`}
+                >
+                  {video.title}
+                </h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[11px] text-gray-400 font-medium">
+                    {video.duration || "00:00"}
+                  </span>
+                  {isActive && (
+                    <span className="text-[10px] bg-[#0047a5] text-white px-1.5 py-0.5 rounded font-bold animate-pulse">
+                      PLAYING
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 학습 완료 체크 (나중에 연동 가능) */}
+              {!isLocked && !isActive && (
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <PlayCircle size={16} className="text-gray-300" />
+                </div>
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight mb-1 group-hover:text-[#0047a5]">
-                {video.title}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {video.subject || "AI Company 강의"}
-              </p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
-};
-
-export default VideoPlayList;
+}
