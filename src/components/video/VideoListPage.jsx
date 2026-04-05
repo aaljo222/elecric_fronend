@@ -1,7 +1,9 @@
+import apiClient from "@/api/core/apiClient";
 import useCustomMove from "@/hooks/useCustomMove";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
+// 💡 AiVideoWatch를 참고하여 로컬 데이터 Import 추가 (Fallback 용도)
 import {
   circuitLectures,
   emLectures,
@@ -9,16 +11,15 @@ import {
   visionLectures,
 } from "@/constants/videoData";
 
-// 💡 분리해둔 하위 컴포넌트들 Import 추가
+// 하위 컴포넌트들 Import
+import RandomProblemSection from "@/components/RandomProblemSection";
 import ActiveVideoCard from "./ActiveVideoCard";
 import DetailModal from "./DetailModal";
 import HeroBanner from "./HeroBanner";
 import LockedVideoCard from "./LockedVideoCard";
 
-// 💡 1. 랜덤 문제 생성기 컴포넌트 임포트 (경로 확인 필수!)
-import RandomProblemSection from "@/components/RandomProblemSection";
 // ==========================================
-// 1. 데이터 및 설정값
+// 1. 데이터 및 카테고리 설정값
 // ==========================================
 const ALL_LECTURES = [
   ...mathLectures,
@@ -28,11 +29,17 @@ const ALL_LECTURES = [
 ];
 
 const getCategory = (lecture) => {
-  if (lecture.subject?.includes("수학")) return "기초 수학";
-  if (lecture.subject?.includes("회로")) return "회로이론";
-  if (lecture.subject?.includes("전자기")) return "전자기학";
-  if (lecture.subject?.includes("AI") || lecture.subject?.includes("Vision"))
-    return "Vision";
+  const sub = lecture.subject || "";
+  if (
+    sub.includes("심화") ||
+    sub.includes("심화수학") ||
+    sub.includes("심화 수학")
+  )
+    return "심화 수학";
+  if (sub.includes("수학")) return "기초 수학";
+  if (sub.includes("회로")) return "회로이론";
+  if (sub.includes("전자기")) return "전자기학";
+  if (sub.includes("AI") || sub.includes("Vision")) return "Vision";
   return "전체";
 };
 
@@ -46,6 +53,11 @@ const CATEGORY_INFO = {
     title: "기초 수학 마스터 클래스",
     desc: "전기 공학 계산의 뼈대가 되는 핵심 수학 이론! 수포자도 이해할 수 있게 쉽게 풀어드립니다.",
     bgIcon: "∑",
+  },
+  "심화 수학": {
+    title: "심화 수학 파워업 클래스",
+    desc: "미적분과 벡터 내적 등, 전자기학과 회로망 해석을 위한 필수 고급 수학을 정복합니다.",
+    bgIcon: "∫",
   },
   회로이론: {
     title: "회로이론 완벽 정복",
@@ -64,8 +76,17 @@ const CATEGORY_INFO = {
   },
 };
 
+const CATEGORIES = [
+  { id: "전체", label: "전체보기", icon: "🌟" },
+  { id: "기초 수학", label: "기초 수학", icon: "📐" },
+  { id: "심화 수학", label: "심화 수학", icon: "📈" },
+  { id: "회로이론", label: "회로이론", icon: "⚡" },
+  { id: "전자기학", label: "전자기학", icon: "🧲" },
+  { id: "Vision", label: "Vision", icon: "🚀" },
+];
+
 // ==========================================
-// 3. 메인 컴포넌트
+// 2. 메인 컴포넌트
 // ==========================================
 export default function VideoListPage() {
   const { page, size, moveToList, moveToRead } = useCustomMove("/user/videos");
@@ -73,27 +94,76 @@ export default function VideoListPage() {
   const [activeTab, setActiveTab] = useState("전체");
   const [selectedVideo, setSelectedVideo] = useState(null);
 
-  // ✅ 데이터 가공 및 필터링 (정렬 로직 제거)
+  const [videoList, setVideoList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 💡 1. 백엔드(DB) 통신 및 안전장치(Fallback) 적용!
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setIsLoading(true);
+        const res = await apiClient.get("/api/video/list");
+
+        // 백엔드 데이터(Neo4j) 매핑
+        const mappedData = res.data.map((v) => ({
+          id: v.id,
+          title: v.title || "제목 없음",
+          videoUrl: v.video_url || "",
+          thumbnail:
+            v.thumbnail ||
+            "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image",
+          subject: v.subject || "영상 강의",
+          description: v.description || "강의 설명이 없습니다.",
+          widgetType: v.widget_type || null,
+        }));
+
+        setVideoList(mappedData);
+      } catch (e) {
+        // 🚨 AiVideoWatch의 방식을 참고하여, 에러 시 로컬 데이터(ALL_LECTURES)로 대체합니다!
+        console.warn(
+          "⚠️ 백엔드 데이터 로딩 실패. 로컬 데이터를 대신 렌더링합니다:",
+          e,
+        );
+
+        const fallbackData = ALL_LECTURES.map((v) => ({
+          id: v.id,
+          title: v.title || "제목 없음",
+          videoUrl: v.videoUrls?.[0] || "",
+          thumbnail:
+            v.thumbnail ||
+            "https://placehold.co/400x300/e2e8f0/94a3b8?text=No+Image",
+          subject: v.subject || "영상 강의",
+          description: v.description || "강의 설명이 없습니다.",
+          widgetType: null,
+        }));
+
+        setVideoList(fallbackData);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchVideos();
+  }, []);
+
+  // ✅ 데이터 가공 및 필터링
   const { activeVideos, lockedVideos } = useMemo(() => {
-    let result = ALL_LECTURES.map((v) => ({
+    let result = videoList.map((v) => ({
       ...v,
       category: getCategory(v),
       duration: v.duration || "10:00",
       createdAt: v.createdAt || "2026-01-01",
-      isLocked:
-        !v.videoUrls || v.videoUrls.length === 0 || v.videoUrls[0] === "",
+      isLocked: !v.videoUrl || v.videoUrl === "",
     }));
 
-    if (activeTab !== "전체")
+    if (activeTab !== "전체") {
       result = result.filter((video) => video.category === activeTab);
-
-    // 정렬 로직이 제거됨: 데이터 순서 그대로 유지
+    }
 
     return {
       activeVideos: result.filter((v) => !v.isLocked),
       lockedVideos: result.filter((v) => v.isLocked),
     };
-  }, [activeTab]);
+  }, [activeTab, videoList]);
 
   const total = activeVideos.length;
   const totalPages = Math.ceil(total / size) || 1;
@@ -105,21 +175,30 @@ export default function VideoListPage() {
     moveToList({ page: 1, size });
   };
 
-  // 💡 2. 탭(카테고리)에 따라 백엔드 API에 요청할 고유 ID를 분기 처리
   const getRandomProblemId = () => {
     if (activeTab === "회로이론" || activeTab === "전자기학")
       return "circuit_random";
-    return "math_random"; // 기본값: 수학 문제
+    return "math_random";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4">
+        <Loader2 className="animate-spin text-[#0047a5]" size={48} />
+        <p className="text-gray-500 font-bold">
+          강의 데이터를 불러오는 중입니다...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <main className="mx-auto px-8 py-12 max-w-7xl w-[85%] font-body relative">
       <HeroBanner
-        currentCategoryData={CATEGORY_INFO[activeTab]}
+        currentCategoryData={CATEGORY_INFO[activeTab] || CATEGORY_INFO["전체"]}
         total={total}
       />
 
-      {/* 탭 컨트롤 (정렬 필터 제거됨) */}
       <div className="flex flex-wrap items-center justify-start gap-4 mb-10">
         {CATEGORIES.map((cat) => (
           <button
@@ -141,7 +220,6 @@ export default function VideoListPage() {
         총 {total}개의 시청 가능 강의 중 {page}페이지를 탐색 중입니다.
       </div>
 
-      {/* 비디오 리스트 */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16">
         {currentList.length > 0 ? (
           currentList.map((video) => (
@@ -158,14 +236,12 @@ export default function VideoListPage() {
           </div>
         )}
 
-        {/* 잠금 비디오 (마지막 페이지이거나 데이터 없을 때 렌더링) */}
         {(page === totalPages || currentList.length === 0) &&
           lockedVideos.map((locked) => (
             <LockedVideoCard key={locked.id} locked={locked} />
           ))}
       </section>
 
-      {/* 페이지네이션 */}
       {total > 0 && (
         <nav className="flex justify-center items-center gap-2">
           <button
@@ -198,7 +274,7 @@ export default function VideoListPage() {
         </nav>
       )}
 
-      {/* 💡 3. 하단: 오늘의 랜덤 도전 영역 추가 */}
+      {/* 💡 하단: 랜덤 도전 영역 (탭 기반 ID 전달) */}
       <div className="mt-20 pt-16 border-t border-gray-200">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -213,11 +289,9 @@ export default function VideoListPage() {
           </p>
         </div>
 
-        {/* 선택된 탭에 따라 동적으로 ID를 던져줍니다. */}
         <RandomProblemSection lectureId={getRandomProblemId()} />
       </div>
 
-      {/* 모달 */}
       <DetailModal
         selectedVideo={selectedVideo}
         onClose={() => setSelectedVideo(null)}
