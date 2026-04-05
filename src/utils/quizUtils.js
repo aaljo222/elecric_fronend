@@ -259,3 +259,49 @@ export const generateOhmQuiz = () => {
 
   return { problem, answer, steps };
 };
+
+// 💡 [심화 수학] 다항함수의 미분계수 구하기 퀴즈 생성기
+export const generateDerivativeQuiz = () => {
+  // f(x) = ax^3 + bx^2 + cx 형태의 3차 다항함수 생성
+  const a = Math.floor(Math.random() * 3) + 1; // 1 ~ 3 (최고차항 계수는 0이 되지 않도록)
+  const b = Math.floor(Math.random() * 7) - 3; // -3 ~ 3
+  const c = Math.floor(Math.random() * 9) - 4; // -4 ~ 4
+  const k = Math.floor(Math.random() * 5) - 2; // x = k 에서의 미분계수 (-2 ~ 2)
+
+  // f(x) 수식 문자열 조합
+  const bStr = b === 0 ? "" : b > 0 ? `+ ${b}x^2` : `- ${Math.abs(b)}x^2`;
+  const cStr = c === 0 ? "" : c > 0 ? `+ ${c}x` : `- ${Math.abs(c)}x`;
+  const fx = `${a}x^3 ${bStr} ${cStr}`.trim();
+
+  // 도함수 f'(x) = 3ax^2 + 2bx + c 계수 계산
+  const aPrime = 3 * a;
+  const bPrime = 2 * b;
+
+  // f'(x) 수식 문자열 조합
+  const bPrimeStr =
+    bPrime === 0 ? "" : bPrime > 0 ? `+ ${bPrime}x` : `- ${Math.abs(bPrime)}x`;
+  const cPrimeStr = c === 0 ? "" : c > 0 ? `+ ${c}` : `- ${Math.abs(c)}`;
+  const fPrimeX = `${aPrime}x^2 ${bPrimeStr} ${cPrimeStr}`.trim();
+
+  // 미분계수 f'(k) 정답 계산
+  const answer = aPrime * (k * k) + bPrime * k + c;
+
+  return {
+    problem: `함수 f(x) = ${fx} \\text{ 에 대하여, } x = ${k} \\text{ 에서의 미분계수 } f'(${k}) \\text{ 의 값을 구하시오.}`,
+    answer: `${answer}`,
+    steps: [
+      {
+        text: "가장 먼저 주어진 함수의 도함수 f'(x)를 구합니다.",
+        math: `f'(x) = ${fPrimeX}`,
+      },
+      {
+        text: `구한 도함수의 x 자리에 ${k}을(를) 대입합니다.`,
+        math: `f'(${k}) = ${aPrime}(${k})^2 ${bPrime >= 0 ? "+" : "-"} ${Math.abs(bPrime)}(${k}) ${c >= 0 ? "+" : "-"} ${Math.abs(c)}`,
+      },
+      {
+        text: "계산 결과, 정답은 다음과 같습니다.",
+        math: `f'(${k}) = ${answer}`,
+      },
+    ],
+  };
+};

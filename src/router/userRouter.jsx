@@ -1,4 +1,5 @@
 // 페이지 이외의 것
+import AiVideoWatch from "@/components/video/AiVideoWatch";
 import VideoListPage from "@/components/video/VideoListPage";
 import BasicLayout from "@/layouts/BasicLayout";
 import ChapterGraphPage from "@/pages/public/ChapterGraphPage";
@@ -6,9 +7,7 @@ import GenericFlowPage from "@/pages/public/GenericFlowPage";
 import PresentationIndexPage from "@/pages/public/PresentationIndexPage";
 import PresentationListPage from "@/pages/public/PresentationListPage";
 import SubjectMapPage from "@/pages/public/SubjectMapPage";
-
 // 페이지
-import AiVideoWatch from "@/pages/user/AiVideoWatch";
 import KnowledgeRepository from "@/pages/user/KnowledgeRepository";
 import ProblemList from "@/pages/user/ProblemList";
 import ProblemSolving from "@/pages/user/ProblemSolving";

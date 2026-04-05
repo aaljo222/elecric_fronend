@@ -1,3 +1,5 @@
+import { Lock } from "lucide-react";
+
 const LockedVideoCard = ({ locked }) => (
   <article className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 opacity-60">
     <div className="relative h-56 bg-gray-200 flex items-center justify-center">

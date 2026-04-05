@@ -1,10 +1,10 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
 import App from "./App.jsx";
-
-import { Provider } from "react-redux";
+import "./index.css";
+// main.jsx 또는 App.jsx 상단에 추가
 import store from "@/store";
+import "katex/dist/katex.min.css";
+import { Provider } from "react-redux";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>

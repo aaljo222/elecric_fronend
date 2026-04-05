@@ -18,7 +18,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 // 교체할 내용 (각 파일 상단에 추가)
 import katex from "katex";
-import "katex/dist/katex.min.css";
 
 const InlineMath = ({ math }) => {
   const html = katex.renderToString(math, {

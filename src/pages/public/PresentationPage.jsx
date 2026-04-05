@@ -1,6 +1,23 @@
 import "katex/dist/katex.min.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BlockMath } from "react-katex";
+// 교체할 내용 (각 파일 상단에 추가)
+import katex from "katex";
+
+const InlineMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: false,
+  });
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+const BlockMath = ({ math }) => {
+  const html = katex.renderToString(math, {
+    throwOnError: false,
+    displayMode: true,
+  });
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
 

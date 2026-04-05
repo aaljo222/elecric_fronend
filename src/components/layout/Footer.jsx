@@ -15,24 +15,24 @@ export default function Footer1() {
                 {COMPANY_NAME}
               </h3>
               <p className="text-[14px] md:text-[15px] font-medium leading-relaxed text-slate-700 break-keep">
-                대한민국 국가기술자격증 합격의 파트너.{" "}
+                깊이가 다른 명강의와 혁신적인 에듀테크의 만남.
                 <br className="hidden md:block" />
-                체계적인 커리큘럼과 전문 강사진을 통해{" "}
+                핵심을 찌르는 '강의 위젯'과 약점을 완벽히 지워주는 '무한
+                문제풀이'로
                 <br className="hidden md:block" />
-                학습자 여러분의 합격을 지원합니다.
+                가장 확실한 단기 합격을 완성합니다.
               </p>
             </div>
             <div className="text-[12px] md:text-[13px] font-medium text-slate-600 leading-relaxed space-y-1">
               <div className="space-y-1.5 md:space-y-2">
                 <p>
-                  상호명: (주)에듀스파크{" "}
+                  상호명: (주)에이아이컴퍼니
                   <span className="mx-1 md:mx-2 text-slate-300">|</span> 대표자:
-                  홍길동
+                  이재오
                 </p>
-                <p>주소: 서울특별시 강남구 테헤란로 123 에듀스파크 빌딩</p>
+                <p>주소: 수원시 권선구 구운중로 11번길 15 103호 </p>
                 <div className="pt-1 flex flex-col md:flex-row md:gap-4 text-slate-500">
-                  <p>사업자등록번호: 123-45-67890</p>
-                  <p>통신판매업신고: 제2024-서울강남-0000호</p>
+                  <p>사업자등록번호: 824-87-03549</p>
                 </div>
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function Footer1() {
                 </p>
               </div>
               <button className="mt-4 md:mt-6 py-2 md:py-3 text-slate-700 font-bold text-[13px] md:text-sm transition-colors flex items-center gap-2 justify-start hover:underline cursor-pointer w-fit">
-                원격지원 서비스{" "}
+                원격지원 서비스
                 <span className="material-symbols-outlined text-[16px] md:text-sm">
                   open_in_new
                 </span>
@@ -122,12 +122,7 @@ export default function Footer1() {
         <div className="mt-10 md:mt-16 pt-6 md:pt-8 border-t border-slate-300 flex flex-col lg:flex-row justify-between items-center gap-6">
           {/* 하단 좌측: 링크 */}
           <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-2 text-[13px] md:text-[14px] text-slate-700 lg:flex-1">
-            <a
-              className="font-bold hover:text-[#0059bb] transition-colors cursor-pointer"
-              onClick={() => move("/about")}
-            >
-              회사소개
-            </a>
+            <a href="https://aicompany.co.kr">회사소개</a>
             <a
               className="font-bold hover:text-[#0059bb] transition-colors cursor-pointer"
               onClick={() => move("/terms")}
@@ -179,7 +174,7 @@ export default function Footer1() {
           {/* 하단 우측: 카피라이트 */}
           <div className="flex justify-center lg:justify-end lg:flex-1">
             <p className="text-[12px] md:text-[13px] font-bold text-slate-500 md:text-slate-600 text-center">
-              © 2024 {COMPANY_NAME} Corp. All rights reserved.
+              © 2026 {COMPANY_NAME} Corp. All rights reserved.
             </p>
           </div>
         </div>
