@@ -51,6 +51,7 @@ const CATEGORY_INFO = {
 const CATEGORIES = [
   { id: "전체", label: "전체보기", icon: "🌟" },
   { id: "기초 수학", label: "기초 수학", icon: "📐" },
+  { id: "심화 수학", label: "심화 수학", icon: "📈" }, // 💡 새로 추가된 탭
   { id: "회로이론", label: "회로이론", icon: "⚡" },
   { id: "전자기학", label: "전자기학", icon: "🧲" },
   { id: "Vision", label: "Vision", icon: "🚀" },
