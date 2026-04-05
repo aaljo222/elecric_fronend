@@ -4,6 +4,8 @@ import { Loader2, MoveLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+// 💡 방금 설치한 수식 렌더링 도구를 불러옵니다!
+import { BlockMath } from "react-katex";
 
 // 컴포넌트 Import
 import QnaCard from "@/components/quiz/QnaCard";
@@ -20,7 +22,6 @@ import {
   visionLectures,
 } from "@/constants/videoData";
 
-// 💡 로컬 퀴즈 생성 함수들을 전부 불러옵니다!
 import {
   generateBasicFunctionQuiz,
   generateCompositeFunctionQuiz,
@@ -45,19 +46,16 @@ export default function AiVideoWatch() {
   const navigate = useNavigate();
   const user = useSelector((state) => state.login?.user) || { id: "guest_123" };
 
-  // 🌟 영상 및 탭 관련 State
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("quiz"); // "quiz" | "qna"
+  const [activeTab, setActiveTab] = useState("quiz");
 
-  // 🌟 내장형 퀴즈 관련 State (VideoListPage 방식 적용!)
   const [problemData, setProblemData] = useState(null);
   const [isFetchingProblem, setIsFetchingProblem] = useState(false);
 
   const videoData = ALL_LECTURES.find((l) => l.id === id);
   const isVision = id.startsWith("vision_");
 
-  // 백엔드에서 영상 URL 가져오기
   useEffect(() => {
     const fetchVideoData = async () => {
       try {
@@ -71,14 +69,12 @@ export default function AiVideoWatch() {
       }
     };
 
-    // 비디오(페이지)가 바뀌면 띄워진 문제도 초기화합니다.
     setProblemData(null);
 
     if (videoData) fetchVideoData();
     else setLoading(false);
   }, [id, videoData]);
 
-  // 💡 로컬 퀴즈 생성 로직 (VideoListPage 방식 완벽 이식)
   const handleFetchProblem = () => {
     setIsFetchingProblem(true);
 
@@ -86,12 +82,9 @@ export default function AiVideoWatch() {
       try {
         let newData = null;
 
-        // 1. 현재 강의(videoData)에 전용 생성기(generator)가 연결되어 있다면 우선 사용!
         if (videoData && videoData.generator) {
           newData = videoData.generator();
-        }
-        // 2. 전용 생성기가 없다면, 과목(subject)에 맞춰 랜덤 출제
-        else if (videoData?.subject?.includes("회로")) {
+        } else if (videoData?.subject?.includes("회로")) {
           newData = generateOhmQuiz();
         } else {
           const mathGenerators = [
@@ -116,7 +109,7 @@ export default function AiVideoWatch() {
       } finally {
         setIsFetchingProblem(false);
       }
-    }, 500); // AI가 계산하는 듯한 0.5초 딜레이
+    }, 500);
   };
 
   if (loading) {
@@ -147,7 +140,6 @@ export default function AiVideoWatch() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
-          {/* 영상 플레이어 영역 */}
           <section className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-lg border border-gray-800 flex items-center justify-center">
             <VideoPlayer videoUrl={videoUrl} title={videoData.title} />
           </section>
@@ -160,7 +152,6 @@ export default function AiVideoWatch() {
 
           {!isVision && (
             <section className="scroll-mt-24">
-              {/* 🌟 탭 버튼 UI */}
               <div className="flex border-b border-gray-200 mt-8 mb-2">
                 <button
                   className={`flex-1 py-4 px-6 text-center font-bold text-lg transition-colors ${
@@ -184,13 +175,11 @@ export default function AiVideoWatch() {
                 </button>
               </div>
 
-              {/* 🌟 탭 상태에 따른 렌더링 분기 */}
               {activeTab === "quiz" ? (
                 <div className="mt-8">
-                  {/* 문제 생성 안내 텍스트 및 버튼 */}
                   <div className="w-full text-center">
                     <p className="text-gray-500 mb-6 font-medium">
-                      서버에서 무작위 심화 문제를 가져옵니다.
+                      해당 개념의 맞춤형 심화 문제를 생성합니다.
                     </p>
                     <button
                       onClick={handleFetchProblem}
@@ -207,15 +196,15 @@ export default function AiVideoWatch() {
                     </button>
                   </div>
 
-                  {/* 문제 출력 영역 (풀이 과정과 정답이 한 번에 나오는 구조) */}
                   {problemData && (
                     <div className="mt-8 p-8 bg-[#f8faff] border border-blue-100 rounded-xl shadow-sm animate-fade-in text-left">
                       <h3 className="text-2xl font-extrabold text-[#0047a5] mb-6 flex items-center gap-2 tracking-tight">
                         📝 실전 연습 문제
                       </h3>
 
+                      {/* 💡 BlockMath를 사용하여 암호 같던 글씨를 예쁜 수식으로 변환합니다! */}
                       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8 text-xl text-gray-900 font-bold leading-relaxed overflow-x-auto">
-                        {problemData.problem}
+                        <BlockMath math={problemData.problem} />
                       </div>
 
                       <div className="space-y-4">
@@ -234,9 +223,10 @@ export default function AiVideoWatch() {
                               <p className="text-gray-600 font-medium mb-3 leading-relaxed">
                                 {step.text}
                               </p>
+                              {/* 💡 해설에 있는 수식도 예쁘게 변환 */}
                               {step.math && (
-                                <div className="bg-gray-50 p-4 rounded-lg text-[#0047a5] font-mono text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
-                                  {step.math}
+                                <div className="bg-gray-50 p-4 rounded-lg text-[#0047a5] text-base overflow-x-auto border border-gray-200 whitespace-nowrap">
+                                  <BlockMath math={step.math} />
                                 </div>
                               )}
                             </div>
@@ -248,8 +238,9 @@ export default function AiVideoWatch() {
                         <span className="block text-blue-200 text-sm font-bold mb-1 tracking-wider uppercase">
                           최종 정답
                         </span>
+                        {/* 💡 정답도 예쁜 수식으로 변환 */}
                         <span className="text-3xl font-black">
-                          {problemData.answer}
+                          <BlockMath math={problemData.answer} />
                         </span>
                       </div>
                     </div>
