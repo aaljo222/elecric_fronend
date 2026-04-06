@@ -31,6 +31,12 @@ const WIDGET_MAP = {
   partial_derivative: lazy(
     () => import("@/components/animations/PartialDerivativeWidget"),
   ),
+<<<<<<< HEAD
+=======
+  math_integral_3d: lazy(
+    () => import("@/components/animations/Integral3DWidget"),
+  ),
+>>>>>>> 2962524 (widget 추가)
 };
 
 export default WIDGET_MAP;
