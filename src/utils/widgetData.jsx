@@ -28,6 +28,9 @@ const WIDGET_MAP = {
     () => import("@/components/animations/VectorInnerProductWidget"),
   ),
   derivative: lazy(() => import("@/components/animations/DerivativeWidget")),
+  partial_derivative: lazy(
+    () => import("@/components/animations/PartialDerivativeWidget"),
+  ),
 };
 
 export default WIDGET_MAP;
