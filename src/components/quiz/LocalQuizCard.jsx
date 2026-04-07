@@ -5,6 +5,33 @@ import { CheckCircle2, Eye, XCircle } from "lucide-react";
 import { useState } from "react";
 
 // ==========================================
+// 💡 수식 렌더링용 헬퍼 함수
+// ==========================================
+// 백엔드에서 온 통짜 \text{} 문자열을 분해하여 자연스럽게 줄바꿈되도록 변환
+const normalizeLatexText = (text) => {
+  if (!text) return "";
+  const strText = String(text);
+
+  // $ 기호가 없으면서 \text{ } 패턴이 있는 경우 (주로 문제 텍스트)
+  if (!/\$\$|\\\[|\\\(|\$/.test(strText) && strText.includes("\\text{")) {
+    const parts = strText.split(/\\text{([^}]+)}/g);
+    let result = "";
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 === 0) {
+        // 수학 수식 부분
+        const mathPart = parts[i].trim();
+        if (mathPart) result += ` $${mathPart}$ `;
+      } else {
+        // 일반 텍스트 부분
+        result += parts[i];
+      }
+    }
+    return result.replace(/\s+/g, " ").trim();
+  }
+  return strText;
+};
+
+// ==========================================
 // 💡 수식 렌더링용 내부 컴포넌트
 // ==========================================
 const InlineMath = ({ math }) => {
@@ -13,7 +40,7 @@ const InlineMath = ({ math }) => {
   const html = katex.renderToString(cleanMath, {
     throwOnError: false,
     displayMode: false,
-    strict: "ignore", // 💡 KaTeX 한글(유니코드) 경고 무시
+    strict: "ignore",
   });
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 };
@@ -24,7 +51,7 @@ const BlockMath = ({ math }) => {
   const html = katex.renderToString(cleanMath, {
     throwOnError: false,
     displayMode: true,
-    strict: "ignore", // 💡 KaTeX 한글(유니코드) 경고 무시
+    strict: "ignore",
   });
   return (
     <div
@@ -41,6 +68,11 @@ const AutoMathRenderer = ({ text, isBlock = true }) => {
   const hasMathDelimiters = /\$\$|\\\[|\\\(|\$/.test(cleanText);
 
   if (!hasMathDelimiters) {
+    // 역슬래시(\)가 없는 순수 텍스트인 경우 KaTeX 렌더링 방지 (띄어쓰기 증발 해결)
+    if (!cleanText.includes("\\")) {
+      return <span>{cleanText}</span>;
+    }
+
     return isBlock ? (
       <BlockMath math={cleanText} />
     ) : (
@@ -107,7 +139,6 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
     setIsCorrect(correct);
     setShowSolution(true);
 
-    // 🚀 404 에러 수정: 과목별로 올바른 백엔드 API 주소 선택
     const recordEndpoint = id.includes("circuit")
       ? "/api/circuit/record"
       : "/api/math/record";
@@ -118,7 +149,7 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
         is_correct: correct,
         chosen_answer: index !== null ? index : -1,
         problem_latex: problemData?.problem_latex || problemData?.problem || "",
-        quiz_data: problemData, // 문제 원본 전체
+        quiz_data: problemData,
       });
     } catch (error) {
       console.error("퀴즈 결과를 저장하지 못했습니다:", error);
@@ -150,12 +181,13 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
     );
   };
 
-  // 💡 데이터 파싱
-  const problemText =
+  // 💡 데이터 파싱 및 정규화
+  const rawProblemText =
     problemData?.problem_latex ||
     problemData?.problem ||
     problemData?.question ||
     "";
+  const problemText = normalizeLatexText(rawProblemText);
   const choices = problemData?.choices || problemData?.options || [];
   const stepsList = problemData?.steps || problemData?.explanation || [];
   const answerText =
@@ -164,8 +196,7 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
     problemData?.answer_latex ||
     "";
 
-  // 🚀 핵심: 백엔드가 판단해서 내려준 용도별 이미지를 명확히 렌더링
-  const questionImage = problemData?.question_image;
+  const questionImage = problemData?.question_image || problemData?.graph_image;
   const solutionImage = problemData?.solution_image;
 
   return (
@@ -211,16 +242,14 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
             )}
           </div>
 
-          {/* 💡 [핵심] 문제용 필수 이미지 렌더링. 처음에 바로 보임 */}
           {renderImage(questionImage, "문제 이미지")}
 
           {problemText && (
-            <div className="mb-10 text-xl text-gray-900 font-bold px-4 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <AutoMathRenderer text={problemText} />
+            <div className="mb-10 text-xl text-gray-900 font-bold px-4 py-6 bg-white rounded-2xl shadow-sm border border-gray-100 break-keep">
+              <AutoMathRenderer text={problemText} isBlock={false} />
             </div>
           )}
 
-          {/* 4지 선다 버튼 영역 */}
           {choices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
               {choices.map((choice, index) => {
@@ -279,20 +308,19 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
             )
           )}
 
-          {/* 💡 단계별 해설 영역 */}
           {showSolution && (
             <div className="mt-12 pt-10 border-t-2 border-dashed border-gray-300 animate-slide-up">
               <h4 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
                 💡 전문가의 상세 풀이
               </h4>
 
-              {/* 💡 [핵심] 해설용 이미지 렌더링. 정답 제출 후에만 보임 */}
               {renderImage(solutionImage, "해설 시각화")}
 
               {stepsList.length > 0 && (
                 <div className="space-y-4">
                   {stepsList.map((step, idx) => {
-                    const stepText = step.description || step.text || "";
+                    const rawStepText = step.description || step.text || "";
+                    const stepText = normalizeLatexText(rawStepText);
                     const stepMath =
                       step.latex || step.math || step.formula || "";
 
@@ -306,9 +334,11 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
                         </span>
                         <div className="mt-1 w-full overflow-hidden">
                           {stepText && (
-                            // 💡 DOM 중첩 에러 수정: <p> 태그 대신 <div> 태그를 사용
-                            <div className="text-gray-700 font-bold mb-4 text-lg leading-relaxed">
-                              <AutoMathRenderer text={stepText} />
+                            <div className="text-gray-700 font-bold mb-4 text-lg leading-relaxed break-keep">
+                              <AutoMathRenderer
+                                text={stepText}
+                                isBlock={false}
+                              />
                             </div>
                           )}
                           {stepMath && (
@@ -323,7 +353,6 @@ const LocalQuizCard = ({ id, subject = "general" }) => {
                 </div>
               )}
 
-              {/* 최종 정답 출력 */}
               {answerText && (
                 <div className="mt-12 p-10 bg-gradient-to-r from-[#0047a5] to-blue-700 text-white rounded-3xl text-center shadow-2xl tracking-tight">
                   <p className="text-blue-200 text-sm font-black mb-3 uppercase tracking-widest opacity-90">
