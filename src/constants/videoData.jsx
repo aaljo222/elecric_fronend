@@ -325,10 +325,12 @@ export const mathLectures = [
     description:
       "3차원 곡면에서 X 또는 Y를 고정(Slice)했을 때 나타나는 단면의 접선 기울기를 통해 편미분의 개념을 3D 시뮬레이션으로 직관적으로 학습합니다.",
     thumbnail:
-      "https://placehold.co/600x400/0f172a/ffffff?text=Partial+Derivative+3D", // 임시 썸네일
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/thumbnails/thumbnail.jpg", // 임시 썸네일
     thumbnailTime: "",
     // 위젯 화면으로 넘어가기 위한 더미 영상 URL
-    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/manifest/video.m3u8",
+    ],
     widget_type: "partial_derivative", // 💡 WIDGET_MAP에 등록한 키값과 정확히 일치!
   },
   {
