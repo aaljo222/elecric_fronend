@@ -377,6 +377,19 @@ export const circuitLectures = [
     ],
     widget_type: "ohms_law", // 💡 이 줄을 추가하세요!
   },
+  {
+    id: "circuit_reactance_3d",
+    subject: "회로이론",
+    title: "7강. 코일과 콘덴서의 리액턴스 (jωL, 1/jωC)",
+    duration: "15:00",
+    description:
+      "주파수에 따라 변하는 코일과 콘덴서의 저항 성분(리액턴스)을 3차원 복소 평면 위젯을 통해 직관적으로 학습합니다.",
+    thumbnail: "https://placehold.co/600x400/0f172a/ffffff?text=Reactance+3D",
+    thumbnailTime: "",
+    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"], // 더미 URL
+    widget_type: "reactance_3d",
+    useBackend: true, // 문제는 백엔드에서 생성
+  },
 ];
 
 // 3. 전자기학 데이터

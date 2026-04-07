@@ -41,6 +41,7 @@ const WIDGET_MAP = {
   angular_velocity: lazy(
     () => import("@/components/animations/AngularVelocityWidget"),
   ),
+  reactance_3d: lazy(() => import("@/components/animations/Reactance3DWidget")),
 };
 
 export default WIDGET_MAP;
