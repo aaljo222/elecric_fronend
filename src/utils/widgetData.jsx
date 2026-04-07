@@ -42,6 +42,10 @@ const WIDGET_MAP = {
     () => import("@/components/animations/AngularVelocityWidget"),
   ),
   reactance_3d: lazy(() => import("@/components/animations/Reactance3DWidget")),
+
+  laplace_3d: lazy(
+    () => import("@/components/animations/controls/Laplace3DWidget"), // 만드신 경로에 맞게 지정
+  ),
 };
 
 export default WIDGET_MAP;

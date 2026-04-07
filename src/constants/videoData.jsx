@@ -468,3 +468,20 @@ export const visionLectures = [
     ],
   },
 ];
+
+export const controlLectures = [
+  {
+    id: "control_laplace_stability",
+    subject: "제어공학",
+    title: "1강. 라플라스 변환과 시스템 안정도 (s-평면)",
+    duration: "15:00",
+    description:
+      "미분방정식을 쉽게 풀게 해주는 라플라스 변환! 극점(Pole)의 위치에 따른 시스템의 안정성(Stability)을 3D 지형도로 직관적으로 학습합니다.",
+    thumbnail:
+      "https://placehold.co/600x400/1e40af/ffffff?text=Laplace+3D+s-plane",
+    thumbnailTime: "",
+    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"], // 더미 영상
+    widget_type: "laplace_3d", // WIDGET_MAP과 연결될 키값
+    useBackend: true, // 파이썬 백엔드(control_service)에서 문제를 가져옴
+  },
+];
