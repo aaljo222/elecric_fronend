@@ -331,6 +331,23 @@ export const mathLectures = [
     videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
     widget_type: "partial_derivative", // 💡 WIDGET_MAP에 등록한 키값과 정확히 일치!
   },
+  {
+    id: "30d2bd6d1675fb17fe237d8c9d930413",
+    subject: "심화수학 (고등)",
+    title: "11강. 3차원 공간과 벡터의 외적",
+    duration: "-", // 필요시 영상 길이 업데이트
+    description:
+      "3차원 공간에서 두 벡터의 외적 연산을 직관적으로 이해하고, 외적 벡터의 방향(오른나사 법칙)과 크기를 구하는 방법을 시뮬레이션과 함께 학습합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/manifest/video.m3u8",
+    ],
+    widget_type: "vector_cross_product", // 💡 아래 WIDGET_MAP과 연결되는 키
+    useBackend: true, // 백엔드에서 랜덤 문제를 받아오기 위한 플래그
+  },
 ];
 
 // 2. 회로이론 데이터

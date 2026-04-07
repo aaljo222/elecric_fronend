@@ -27,6 +27,10 @@ const WIDGET_MAP = {
   vectorInnerProject: lazy(
     () => import("@/components/animations/VectorInnerProductWidget"),
   ),
+  vector_cross_product: lazy(
+    // 💡 새롭게 추가된 외적 위젯
+    () => import("@/components/animations/VectorCrossProductWidget"),
+  ),
   derivative: lazy(() => import("@/components/animations/DerivativeWidget")),
   partial_derivative: lazy(
     () => import("@/components/animations/PartialDerivativeWidget"),
