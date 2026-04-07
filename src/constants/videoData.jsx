@@ -333,7 +333,7 @@ export const mathLectures = [
   },
   {
     id: "30d2bd6d1675fb17fe237d8c9d930413",
-    subject: "심화수학 (고등)",
+    subject: "기초수학",
     title: "11강. 3차원 공간과 벡터의 외적",
     duration: "-", // 필요시 영상 길이 업데이트
     description:
@@ -347,6 +347,23 @@ export const mathLectures = [
     ],
     widget_type: "vector_cross_product", // 💡 아래 WIDGET_MAP과 연결되는 키
     useBackend: true, // 백엔드에서 랜덤 문제를 받아오기 위한 플래그
+  },
+  {
+    id: "605e4d59a8fdcfe8f914734370c726f4",
+    subject: "기초수학",
+    title: "각속도와 주파수",
+    duration: "-",
+    description:
+      "각속도와 주파수의 관계를 이해하고, 주기와의 연관성을 통해 회전 운동을 정량적으로 계산하는 방법을 학습합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/605e4d59a8fdcfe8f914734370c726f4/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/605e4d59a8fdcfe8f914734370c726f4/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/605e4d59a8fdcfe8f914734370c726f4/manifest/video.m3u8",
+    ],
+    widget_type: "angular_velocity", // 🔥 변경
+    useBackend: true,
   },
 ];
 

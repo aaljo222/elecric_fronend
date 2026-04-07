@@ -38,6 +38,9 @@ const WIDGET_MAP = {
   math_integral_3d: lazy(
     () => import("@/components/animations/Integral3DWidget"),
   ),
+  angular_velocity: lazy(
+    () => import("@/components/animations/AngularVelocityWidget"),
+  ),
 };
 
 export default WIDGET_MAP;
