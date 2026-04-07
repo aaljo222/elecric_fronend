@@ -8,7 +8,6 @@ import {
   generatePerfectSquareQuiz,
 } from "@/utils/quizUtils";
 
-// 1. 기초수학 데이터
 export const mathLectures = [
   {
     id: "math_fraction",
@@ -86,9 +85,20 @@ export const mathLectures = [
     generator: generateBasicFunctionQuiz,
   },
   {
-    id: "62069c25429c16e898888d5611eb67b4", // 클라우드플레어 영상 해시 ID
-    subject: "기초수학", // 💡 여기를 정확히 맞춰주세요!
-    title: "7강. 직선의 방정식과 두 직선의 교점", // 번호는 알맞게 조정해 주세요
+    id: "math_polynomial",
+    subject: "기초수학",
+    title: "6강. 다항식의 연산과 곱셈공식",
+    duration: "-",
+    description:
+      "복잡한 수식을 간결하게 정리하기 위한 다항식의 전개와 인수분해 기초를 다집니다.",
+    thumbnail: "",
+    thumbnailTime: "",
+    videoUrls: [""],
+  },
+  {
+    id: "62069c25429c16e898888d5611eb67b4",
+    subject: "기초수학",
+    title: "7강. 직선의 방정식과 두 직선의 교점",
     duration: "-",
     description:
       "두 직선의 방정식을 이해하고, 연립방정식을 통해 두 직선이 만나는 교점을 구하는 방법을 학습합니다.",
@@ -100,14 +110,11 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/62069c25429c16e898888d5611eb67b4/manifest/video.m3u8",
     ],
   },
-  // 💡 2. 여기에 '포물선과 직선의 교점' 데이터 추가
-  // constants/videoData.js 내부 수정
   {
     id: "61b1ec56bcd7e87535d18c40bb9afb21",
-    // 61b1ec56bcd7e87535d18c40bb9afb21
     subject: "기초수학",
     title: "8강. 포물선과 직선의 교점",
-    duration: "10:30", // 적절한 시간 입력
+    duration: "10:30",
     description:
       "이차함수와 일차함수의 연립방정식을 통해 교점의 좌표를 찾는 방법을 배웁니다.",
     thumbnail:
@@ -115,27 +122,28 @@ export const mathLectures = [
     thumbnailTime: "10s",
     videoUrls: [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/61b1ec56bcd7e87535d18c40bb9afb21/watch",
-    ], // 👈 이 필드가 있어야 목록에서 보입니다!
+    ],
     useBackend: true,
   },
   {
-    id: "math_radian",
+    id: "e935dc2d2e592a79688c5f40da5fbe23",
     subject: "기초수학",
-    title: "13강. 호도법과 라디안(Radian)",
-    duration: "-", // 정확한 영상 길이를 아시면 수정해 주세요
+    title: "9강. 완전제곱식의 이해",
+    duration: "-",
     description:
-      "육십분법(도, °)과 호도법(라디안, rad)의 관계를 이해하고, 교류 회로 및 삼각함수 해석에 필수적인 라디안 변환 방법을 학습합니다.",
+      "다항식의 제곱 형태로 인수분해되는 완전제곱식의 조건과 원리를 학습하고 실전에 적용합니다.",
     thumbnail:
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/thumbnails/thumbnail.jpg",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/thumbnails/thumbnail.jpg",
     thumbnailTime: "10s",
     videoUrls: [
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/watch",
     ],
+    generator: generatePerfectSquareQuiz,
   },
   {
     id: "c3d27bab5e1cf6ae9f07f70ae08c1e26",
     subject: "기초수학",
-    title: "삼각함수 1",
+    title: "10강. 삼각함수 1",
     duration: "-",
     description:
       "교류(AC) 파형 해석의 기초가 되는 삼각함수(sin, cos, tan)의 기본 원리를 학습합니다.",
@@ -143,15 +151,15 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/thumbnails/thumbnail.jpg",
     thumbnailTime: "10s",
     videoUrls: [
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/watch", // 일반 시청용
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/manifest/video.m3u8", // HLS 스트리밍용
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/manifest/video.m3u8",
     ],
-    widget_type: "trig_circle", // 💡 이 줄을 추가하세요! (WIDGET_MAP의 키값)
+    widget_type: "trig_circle",
   },
   {
     id: "8fc05f0f6c31f19deeb976cb2b1562cf",
     subject: "기초수학",
-    title: "삼각함수 2",
+    title: "11강. 삼각함수 2",
     duration: "-",
     description:
       "삼각함수의 그래프, 주기성, 그리고 전기공학의 교류 분석에서 중요한 위상(Phase)의 개념을 학습합니다.",
@@ -164,24 +172,23 @@ export const mathLectures = [
     ],
   },
   {
-    id: "e935dc2d2e592a79688c5f40da5fbe23", // 요청하신 영상 해시 ID
+    id: "math_radian",
     subject: "기초수학",
-    title: "완전제곱식의 이해",
+    title: "12강. 호도법과 라디안(Radian)",
     duration: "-",
     description:
-      "다항식의 제곱 형태로 인수분해되는 완전제곱식의 조건과 원리를 학습하고 실전에 적용합니다.",
+      "육십분법(도, °)과 호도법(라디안, rad)의 관계를 이해하고, 교류 회로 및 삼각함수 해석에 필수적인 라디안 변환 방법을 학습합니다.",
     thumbnail:
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/thumbnails/thumbnail.jpg",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/thumbnails/thumbnail.jpg",
     thumbnailTime: "10s",
     videoUrls: [
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/e935dc2d2e592a79688c5f40da5fbe23/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c3d27bab5e1cf6ae9f07f70ae08c1e26/watch",
     ],
-    generator: generatePerfectSquareQuiz, // 💡 방금 만든 문제 생성기 연결!
   },
   {
-    id: "201092af306ff8cb381808e4c3f45e0c", // DB와 일치하는 새 영상 ID
+    id: "201092af306ff8cb381808e4c3f45e0c",
     subject: "기초수학",
-    title: "10강. 기하와 벡터의 내적",
+    title: "13강. 기하와 벡터의 내적",
     duration: "-",
     description:
       "두 벡터의 내적 연산과 기하학적 의미(투영)를 직관적으로 이해하고, 역코사인(cos⁻¹θ)을 이용해 사이각을 구하는 방법을 학습합니다.",
@@ -192,12 +199,29 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/201092af306ff8cb381808e4c3f45e0c/watch",
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/201092af306ff8cb381808e4c3f45e0c/manifest/video.m3u8",
     ],
-    useBackend: true, // 무작위 퀴즈를 위해 백엔드 API를 사용하도록 설정
+    useBackend: true,
   },
   {
-    id: "c44dc0cd81fbb02320299a7bff062e4d", // Neo4j 및 백엔드와 매핑되는 클라우드플레어 해시 ID
-    subject: "기초수학", // 요청하신 대로 기초수학으로 분류
-    title: "12강. 미분의 이해", // 번호는 커리큘럼에 맞게 조정해 주세요
+    id: "30d2bd6d1675fb17fe237d8c9d930413",
+    subject: "기초수학",
+    title: "14강. 3차원 공간과 벡터의 외적",
+    duration: "-",
+    description:
+      "3차원 공간에서 두 벡터의 외적 연산을 직관적으로 이해하고, 외적 벡터의 방향(오른나사 법칙)과 크기를 구하는 방법을 시뮬레이션과 함께 학습합니다.",
+    thumbnail:
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/manifest/video.m3u8",
+    ],
+    widget_type: "vector_cross_product",
+    useBackend: true,
+  },
+  {
+    id: "c44dc0cd81fbb02320299a7bff062e4d",
+    subject: "기초수학",
+    title: "15강. 미분의 이해",
     duration: "-",
     description:
       "함수의 순간 변화율을 구하는 미분의 기본 개념과 다항함수의 미분법을 시각적으로 학습합니다.",
@@ -208,152 +232,43 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/watch",
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/c44dc0cd81fbb02320299a7bff062e4d/manifest/video.m3u8",
     ],
-    widget_type: "derivative", // 💡 이 줄을 추가하세요!
-    useBackend: true, // 💡 FastAPI 백엔드의 무한 문제풀이(generate_derivative_problem)를 호출하기 위해 반드시 true로 설정
+    widget_type: "derivative",
+    useBackend: true,
   },
-
   {
-    id: "math_partial_derivative", // 편미분 고유 ID
+    id: "a778e615bf667e6db830b498baa5ec66", // ✅ 수정된 편미분 객체
     subject: "기초수학",
-    title: "13강. 편미분의 기하학적 이해", // 미분 다음 강의로 자연스럽게 배치
+    title: "16강. 편미분의 기하학적 이해",
     duration: "-",
     description:
       "3차원 곡면에서 X 또는 Y를 고정(Slice)했을 때 나타나는 단면의 접선 기울기를 통해 편미분의 개념을 3D 시뮬레이션으로 직관적으로 학습합니다.",
     thumbnail:
-      "https://placehold.co/600x400/0f172a/ffffff?text=Partial+Derivative+3D", // 임시 썸네일
-    thumbnailTime: "",
-    // 위젯 화면으로 넘어가기 위한 더미 영상 URL
-    videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
-    widget_type: "partial_derivative", // 💡 WIDGET_MAP에 등록한 키값과 정확히 일치!
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/thumbnails/thumbnail.jpg",
+    thumbnailTime: "10s",
+    videoUrls: [
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/watch",
+      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/manifest/video.m3u8",
+    ],
+    widget_type: "partial_derivative",
+    useBackend: true,
   },
   {
-    id: "math_integral_3d", // 3D 적분 고유 ID
+    id: "math_integral_3d",
     subject: "기초수학",
-    title: "14강. 다중적분과 단면의 넓이 (3D)",
+    title: "17강. 다중적분과 단면의 넓이 (3D)",
     duration: "-",
     description:
       "3차원 공간에서 f(x,y) 곡면을 x 또는 y 평면으로 절단했을 때 나타나는 단면의 면적을 구하며, 정적분의 기하학적 의미를 3D 시뮬레이션으로 직관적으로 학습합니다.",
     thumbnail:
-      "https://placehold.co/600x400/0f172a/ffffff?text=Integral+Area+3D", // 임시 썸네일
+      "https://placehold.co/600x400/0f172a/ffffff?text=Integral+Area+3D",
     thumbnailTime: "",
-    // 위젯 화면으로 넘어가기 위한 더미 영상 URL
     videoUrls: ["https://www.w3schools.com/html/mov_bbb.mp4"],
-    widget_type: "math_integral_3d", // 💡 WIDGET_MAP에 등록한 키값과 정확히 일치!
-  },
-  {
-    id: "math_polynomial",
-    subject: "기초수학",
-    title: "6강. 다항식의 연산과 곱셈공식", // ✅ 5강 -> 6강으로 수정
-    duration: "-",
-    description:
-      "복잡한 수식을 간결하게 정리하기 위한 다항식의 전개와 인수분해 기초를 다집니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_equation",
-    subject: "기초수학",
-    title: "7강. 방정식과 부등식", // ✅ 6강 -> 7강으로 수정
-    duration: "-",
-    description:
-      "미지수 x를 구하는 일차/이차 방정식(근의 공식)과 연립방정식 풀이법을 학습합니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_trig",
-    subject: "기초수학",
-    title: "8강. 삼각함수의 완벽 이해", // ✅ 7강 -> 8강으로 수정
-    duration: "-",
-    description:
-      "교류(AC) 파형 해석에 필수적인 sin, cos, tan의 개념, 피타고라스 정리 및 호도법을 배웁니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_imaginary",
-    subject: "기초수학",
-    title: "9강. 허수와 복소수 (j)", // ✅ 8강 -> 9강으로 수정
-    duration: "-",
-    description:
-      "리액턴스와 임피던스 계산을 위해 수학의 'i' 대신 전기공학의 'j'를 활용한 복소수 연산을 익힙니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_vector",
-    subject: "기초수학",
-    title: "10강. 기하와 벡터", // ✅ 9강 -> 10강으로 수정
-    duration: "-",
-    description:
-      "전자기학의 핵심! 힘의 방향과 크기를 나타내는 벡터의 합, 차, 내적(Dot), 외적(Cross)을 계산합니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_matrix",
-    subject: "기초수학",
-    title: "11강. 행렬과 행렬식", // ✅ 10강 -> 11강으로 수정
-    duration: "-",
-    description:
-      "복잡한 다중 루프 회로망(키르히호프)을 쉽게 풀기 위한 행렬의 곱셈과 크래머 공식(Cramer's rule)을 배웁니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_calculus",
-    subject: "기초수학",
-    title: "12강. 미분과 적분 기초", // ✅ 11강 -> 12강으로 수정
-    duration: "-",
-    description:
-      "맥스웰 방정식과 전자기학 전반을 지배하는 다항함수 및 삼각함수의 기본 미적분 공식을 마스터합니다.",
-    thumbnail: "",
-    thumbnailTime: "",
-    videoUrls: [""],
-  },
-  {
-    id: "math_partial_derivative", // 편미분 고유 ID
-    subject: "기초수학",
-    title: "13강. 편미분의 기하학적 이해", // 미분 다음 강의로 자연스럽게 배치
-    duration: "-",
-    description:
-      "3차원 곡면에서 X 또는 Y를 고정(Slice)했을 때 나타나는 단면의 접선 기울기를 통해 편미분의 개념을 3D 시뮬레이션으로 직관적으로 학습합니다.",
-    thumbnail:
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/thumbnails/thumbnail.jpg", // 임시 썸네일
-    thumbnailTime: "",
-    // 위젯 화면으로 넘어가기 위한 더미 영상 URL
-    videoUrls: [
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/a778e615bf667e6db830b498baa5ec66/manifest/video.m3u8",
-    ],
-    widget_type: "partial_derivative", // 💡 WIDGET_MAP에 등록한 키값과 정확히 일치!
-  },
-  {
-    id: "30d2bd6d1675fb17fe237d8c9d930413",
-    subject: "기초수학",
-    title: "11강. 3차원 공간과 벡터의 외적",
-    duration: "-", // 필요시 영상 길이 업데이트
-    description:
-      "3차원 공간에서 두 벡터의 외적 연산을 직관적으로 이해하고, 외적 벡터의 방향(오른나사 법칙)과 크기를 구하는 방법을 시뮬레이션과 함께 학습합니다.",
-    thumbnail:
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/thumbnails/thumbnail.jpg",
-    thumbnailTime: "10s",
-    videoUrls: [
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/watch",
-      "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/30d2bd6d1675fb17fe237d8c9d930413/manifest/video.m3u8",
-    ],
-    widget_type: "vector_cross_product", // 💡 아래 WIDGET_MAP과 연결되는 키
-    useBackend: true, // 백엔드에서 랜덤 문제를 받아오기 위한 플래그
+    widget_type: "math_integral_3d",
   },
   {
     id: "605e4d59a8fdcfe8f914734370c726f4",
     subject: "기초수학",
-    title: "각속도와 주파수",
+    title: "18강. 각속도와 주파수",
     duration: "-",
     description:
       "각속도와 주파수의 관계를 이해하고, 주기와의 연관성을 통해 회전 운동을 정량적으로 계산하는 방법을 학습합니다.",
@@ -364,8 +279,41 @@ export const mathLectures = [
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/605e4d59a8fdcfe8f914734370c726f4/watch",
       "https://customer-w4c7tmh3vvpu6ohy.cloudflarestream.com/605e4d59a8fdcfe8f914734370c726f4/manifest/video.m3u8",
     ],
-    widget_type: "angular_velocity", // 🔥 변경
+    widget_type: "angular_velocity",
     useBackend: true,
+  },
+  {
+    id: "math_equation",
+    subject: "기초수학",
+    title: "부록. 방정식과 부등식",
+    duration: "-",
+    description:
+      "미지수 x를 구하는 일차/이차 방정식(근의 공식)과 연립방정식 풀이법을 학습합니다.",
+    thumbnail: "",
+    thumbnailTime: "",
+    videoUrls: [""],
+  },
+  {
+    id: "math_imaginary",
+    subject: "기초수학",
+    title: "부록. 허수와 복소수 (j)",
+    duration: "-",
+    description:
+      "리액턴스와 임피던스 계산을 위해 수학의 'i' 대신 전기공학의 'j'를 활용한 복소수 연산을 익힙니다.",
+    thumbnail: "",
+    thumbnailTime: "",
+    videoUrls: [""],
+  },
+  {
+    id: "math_matrix",
+    subject: "기초수학",
+    title: "부록. 행렬과 행렬식",
+    duration: "-",
+    description:
+      "복잡한 다중 루프 회로망(키르히호프)을 쉽게 풀기 위한 행렬의 곱셈과 크래머 공식(Cramer's rule)을 배웁니다.",
+    thumbnail: "",
+    thumbnailTime: "",
+    videoUrls: [""],
   },
 ];
 
